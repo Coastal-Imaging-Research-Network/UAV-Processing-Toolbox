@@ -1,0 +1,49 @@
+#!/usr/bin/perl
+
+# every -- extract every nth frame from movie
+# actually, extract them all and then delete, sigh
+#
+#  input: every n moviefile destination
+#
+
+use Cwd;
+
+($rate = shift) or &usage("increment");
+($file = shift) or &usage("movie file to extract from");
+($dest = shift) or ($dest = $file . "-extracted");
+
+$here = cwd();
+$source = $here . '/' . $file;
+
+print "Extracting $file ($source) ...\n";
+print "   to directory $dest.\n";
+print "   with every $rate frames.\n";
+
+do { 
+    print "Error: cannot open input file: $source\n";
+    exit;
+} unless -f $source;
+
+# make a place to extract to -- $file-extracted
+mkdir "$dest" || die "cannot create output directory: $!\n";
+chdir "$dest" || die "cannot change to output directory: $!\n";
+
+system("mplayer -vo png -vf framestep=$rate $source");
+
+@f = glob('*.png');
+
+print "created " . $#f . " files\n";
+
+
+sub usage {
+
+    my $reason = shift @_;
+
+    print "You fail! You forgot to enter $reason\n";
+    print "Usage: every increment movie-file [destination directory]\n";
+    print "Destination directory is optional, defaults to \n";
+    print "  movie-file with -extracted appended.\n";
+
+    exit;
+
+}
