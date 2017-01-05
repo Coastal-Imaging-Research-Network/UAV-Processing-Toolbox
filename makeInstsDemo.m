@@ -1,4 +1,4 @@
-function insts = makeDJIInsts201510011529
+function insts = makeInstsDemo
 %   insts = makeDJIInsts
 %
 % creates pixel instruments for DJI video.  Types can be line or matrix

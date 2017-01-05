@@ -6,8 +6,8 @@ inputs.stationStr = 'Aerielle';
 inputs.dateVect = [2015 10 1 19+4 29 0];       % date/time of first frame
 inputs.dt = 0.5/(24*3600);           % delta t (s) converted to datenums
 inputs.frameFn = 'demoClip';            % root of frames folder name
-inputs.gcpFn = './demoGCPFile.mat';
-inputs.instsFn = './demoInstsFile';            % instrument m-file location
+inputs.gcpFn = [pwd, filesep, 'demoGCPFile.mat'];
+inputs.instsFn = [pwd, filesep,'demoInstsFile'];            % instrument m-file location
 
 % 2.  Geometry solution Inputs:
 % The six extrinsic variables, the camera location and viewing angles

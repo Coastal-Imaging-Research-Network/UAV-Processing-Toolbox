@@ -22,7 +22,7 @@ function in = makeUAVPn(in)
 % in.pncx = ['/ftp/pub/' in.stationStr '/' num2str(in.dateVect(1)) ...
 %             '/cx/' in.dayFn '/'];    
 in.dayFn = 'demoResults';
-in.pncx = './demoMovies/demoOutput/';
+in.pncx = uigetdir([],'select local demo results directory'); % select local demo results directory
         
 % Below (commented out) is the normal frame location for CIL work
 % It has been replaced temporarily by the pathname for the demo clips.  You
@@ -31,4 +31,4 @@ in.pncx = './demoMovies/demoOutput/';
 
 %in.pnIn = ['/scratch/temp/holman/' in.stationStr '/' num2str(in.dateVect(1)) '/'];
 
-in.pnIn = './demoMovies/';       % local demo storage location
+in.pnIn = uigetdir([],'select local demo storage directory');       % local demo storage location

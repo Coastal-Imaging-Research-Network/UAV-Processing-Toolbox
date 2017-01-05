@@ -43,7 +43,7 @@ disp('Pick small bright reference points.  Ensure that the first is the ')
 disp('most isolated from nearby bright objects and give an adequate buffer')
 disp('to allow for inter-frame aim point wander.')
 disp(' ')
-foo = input('Hit CR to replot image and continue - ');
+foo = input('Hit <Enter> to replot image and continue - ');
 figure(1);clf
 imagesc(I)
 Ig = rgb2gray(I);

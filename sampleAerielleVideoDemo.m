@@ -48,7 +48,7 @@ nt = sum(Nf);
 dn = datenum(inputs.dateVect) + ([1:nt]-1)*inputs.dt;
 
 % read the first frame and display.  Do a manual geometry on it if needed.
-I = imread([inputs.pnIn clipFns(1).name filesep fns{1}(1).name]);
+I = imread([inputs.pnIn filesep clipFns(1).name filesep fns{1}(1).name]);
 [NV, NU, NC] = size(I);
 Ig = rgb2gray(I);           % for later sampling.
 meta.showFoundRefPoints = inputs.showFoundRefPoints; % easy way to pass.
@@ -95,7 +95,7 @@ end
 insts = fillInsts(insts,betas(1,:),meta);
 showInsts(I,insts,betas(1,:),meta.globals);     % plot them to make sure sensible
 % if you don't see what you hoped to see, stop and re-create instruments.
-foo = input('Hit Ctrl-C if instruments not proper in Figure 3, otherwise CR ');
+foo = input('Hit Ctrl-C if instruments not proper in Figure 3, otherwise <Enter> ');
 % save the info in the stacks structure.
 for i = 1: length(insts)
     stack(i).inst = insts(i);
@@ -164,7 +164,7 @@ for clip = 1: NClips    % this is only relevant if you have multiple clips
         % read a new frame and find the new geometry, betas, and save in
         % matrix.  Then sample both the stacks and build the image
         % products, if needed.
-        I = imread([inputs.pnIn clipFns(clip).name '/' fns{clip}(i).name]);
+        I = imread([inputs.pnIn filesep clipFns(clip).name filesep fns{clip}(i).name]);
         Ig = double(rgb2gray(I));
         if ~oldGeoms
             [beta1,~,~,failFlag] = ...
@@ -212,7 +212,7 @@ for i = 1: length(insts)
 end
 
 % print the image products to pngs and save a matlab version
-finalImages.snap = imread([inputs.pnIn clipFns(1).name filesep fns{1}(1).name]);
+finalImages.snap = imread([inputs.pnIn filesep clipFns(1).name filesep fns{1}(1).name]);
 if inputs.doImageProducts
     printAndSaveImageProducts(finalImages, inputs.pncx,info);
 end
