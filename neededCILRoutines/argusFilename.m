@@ -196,41 +196,28 @@ if ~isempty(boo)
 end 
 
 %
-% Copyright by Oregon State University, 2002
-% Developed through collaborative effort of the Argus Users Group
-% For official use by the Argus Users Group or other licensed activities.
+
 %
-% $Id: argusFilename.m 196 2016-06-02 20:47:36Z stanley $
+%   Copyright (C) 2017  Coastal Imaging Research Network
+%                       and Oregon State University
+
+%    This program is free software: you can redistribute it and/or  
+%    modify it under the terms of the GNU General Public License as 
+%    published by the Free Software Foundation, version 3 of the 
+%    License.
+
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see
+%                                <http://www.gnu.org/licenses/>.
+
+% CIRN: https://coastal-imaging-research-network.github.io/
+% CIL:  http://cil-www.coas.oregonstate.edu
 %
-% $Log: argusFilename.m,v $
-% Revision 1.26  2012/01/31 23:04:49  stanley
-% fixed comments to remove version info
+%key UAVProcessingToolbox
 %
-% Revision 1.25  2008/11/22 00:02:58  stanley
-% fix creation of names with dot-terminal or two-dots
-%
-% Revision 1.24  2008/09/12 21:46:13  stanley
-% added a DBTestConnect -- dies silently without DB access
-%
-% Revision 1.23  2007/12/04 18:12:36  stanley
-% added error test for non-station
-%
-% Revision 1.22  2006/05/09 22:19:05  stanley
-% added small rounding constant to datevec time
-%
-% Revision 1.21  2006/05/02 17:16:56  stanley
-% missed one bit
-%
-% Revision 1.20  2006/05/01 22:04:42  stanley
-% added fixes for localTZ for sites. ick...
-%
-% Revision 1.19  2004/10/13 18:49:04  stanley
-% Deal with cx camera 'numbers'
-%
-% Revision 1.18  2004/03/25 16:55:24  stanley
-% auto insert keywords
-%
-%
-%key filename 
-%comment  Creates an Argus file name from data 
-%
+

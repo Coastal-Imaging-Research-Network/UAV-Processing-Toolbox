@@ -16,17 +16,28 @@ R(3,2) = sin(t) * cos(a);
 R(3,3) = -cos(t);
 
 %
-% Copyright by Oregon State University, 2002
-% Developed through collaborative effort of the Argus Users Group
-% For official use by the Argus Users Group or other licensed activities.
+
 %
-% $Id: angles2R.m 196 2016-06-02 20:47:36Z stanley $
+%   Copyright (C) 2017  Coastal Imaging Research Network
+%                       and Oregon State University
+
+%    This program is free software: you can redistribute it and/or  
+%    modify it under the terms of the GNU General Public License as 
+%    published by the Free Software Foundation, version 3 of the 
+%    License.
+
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see
+%                                <http://www.gnu.org/licenses/>.
+
+% CIRN: https://coastal-imaging-research-network.github.io/
+% CIL:  http://cil-www.coas.oregonstate.edu
 %
-% $Log: angles2R.m,v $
-% Revision 1.1  2004/08/18 20:16:42  stanley
-% Initial revision
+%key UAVProcessingToolbox
 %
-%
-%key geometry 
-%comment  Makes rotation matrix from angles 
-%
+
