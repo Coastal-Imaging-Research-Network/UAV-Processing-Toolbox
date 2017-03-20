@@ -75,6 +75,11 @@ if isfield( camera, 'Drad' )
 elseif (isfield( camera, 'lcp'))
     whichUndistort = 'caltech';
     [Uu, Vu] = undistortCaltech( Ud, Vd, camera.lcp );
+
+elseif (isfield( camera, 'c0U'))
+    whichUndistort = 'caltech';
+    [Uu, Vu] = undistortCaltech( Ud, Vd, camera );
+    
     
 else
     
