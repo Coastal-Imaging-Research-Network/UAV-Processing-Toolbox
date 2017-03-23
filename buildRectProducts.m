@@ -78,6 +78,8 @@ else
         images.dark(:,:,i) = bar;
     end
     images.N(good) = images.N(good)+1;
+    
+end
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
