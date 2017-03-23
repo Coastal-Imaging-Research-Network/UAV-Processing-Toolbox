@@ -41,17 +41,28 @@ jul = matlab2Julian( d );
 
 day = sprintf('%03d_%s.%02d', jul, dmon, d(3) ); 
 %
-% Copyright by Oregon State University, 2002
-% Developed through collaborative effort of the Argus Users Group
-% For official use by the Argus Users Group or other licensed activities.
+
 %
-% $Id: argusDay.m 196 2016-06-02 20:47:36Z stanley $
+%   Copyright (C) 2017  Coastal Imaging Research Network
+%                       and Oregon State University
+
+%    This program is free software: you can redistribute it and/or  
+%    modify it under the terms of the GNU General Public License as 
+%    published by the Free Software Foundation, version 3 of the 
+%    License.
+
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see
+%                                <http://www.gnu.org/licenses/>.
+
+% CIRN: https://coastal-imaging-research-network.github.io/
+% CIL:  http://cil-www.coas.oregonstate.edu
 %
-% $Log: argusDay.m,v $
-% Revision 1.12  2004/03/25 16:55:23  stanley
-% auto insert keywords
+%key UAVProcessingToolbox
 %
-%
-%key time 
-%comment  Creates the julian day argus directory name  
-%
+
