@@ -11,6 +11,7 @@ finalImages.y = images.y;
 finalImages.timex = uint8(images.sumI./N);
 finalImages.bright = uint8(images.bright);
 finalImages.dark = uint8(images.dark);
+finalImages.N = images.N;
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
