@@ -13,6 +13,7 @@ foo = interp2(double(squeeze(I(:,:,2))),Ud,Vd);
 I2(:,:,2) = reshape(foo,size(U));
 foo = interp2(double(squeeze(I(:,:,3))),Ud,Vd);
 I2(:,:,3) = reshape(foo,size(U));
+I2 = I2/255;
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
