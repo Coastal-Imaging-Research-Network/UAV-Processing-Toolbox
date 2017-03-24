@@ -9,6 +9,7 @@ inputs.frameFn = 'demoClip';            % root of frame names
 inputs.gcpFn = [pwd, filesep, 'demoGCPFile.mat'];   % File that contains the names and locations of all the possible GCPs 
 inputs.instsFn = [pwd, filesep,'demoInstsFile'];            % instrument m-file location
 
+
 % 2.  Geometry solution Inputs:
 % The six extrinsic variables, the camera location and viewing angles
 % in the order [ xCam yCam zCam Azimuth Tilt Roll].

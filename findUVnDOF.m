@@ -42,19 +42,12 @@ else
 end
 lcp = globs.lcp;
 
-K = [lcp.fx 0 lcp.c0U;  
-     0 -lcp.fy lcp.c0V;
-     0  0 1];
-
-R = angles2R(b2(4), b2(5), b2(6));
-IC = [eye(3) -b2(1:3)'];
-P = K*R*IC;
-P = P/P(3,4);   % unnecessary since we will also normalize UVs
+P = lcpBeta2P( lcp, b2 );
 
 UV = P*[xyz'; ones(1,size(xyz,1))];
 UV = UV./repmat(UV(3,:),3,1);
 
-[U,V] = DJIDistort(UV(1,:),UV(2,:),lcp); 
+[U,V] = distort(UV(1,:),UV(2,:),lcp); 
 UV = [U; V];
 
 %
