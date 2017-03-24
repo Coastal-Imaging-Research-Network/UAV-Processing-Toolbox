@@ -24,7 +24,8 @@ function in = makeUAVPn(in)
 in.dayFn = 'demoResults';
 display('Select Directory for local Results to be stored')
 in.pncx = uigetdir([],'Select Directory for local Results to be stored'); % select local demo results directory
-        
+in.pncx=[in.pncx,filesep]; %add file separator at end of path for proper path saving       
+
 % Below (commented out) is the normal frame location for CIL work
 % It has been replaced temporarily by the pathname for the demo clips.  You
 % should definitely NOT store your data in the toolbox, so you need to
