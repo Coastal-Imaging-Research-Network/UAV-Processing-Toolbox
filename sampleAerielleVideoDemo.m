@@ -10,6 +10,8 @@
 clear
 close all
 
+addpath(genpath('.')) % adds folder dependencies 
+
 % required USER INPUT material.  Adapt to each collection
 demoInputFile;      % this file contains all of the required inputs.
 
@@ -35,13 +37,14 @@ load(inputs.gcpFn);             % load gcps
 
 % find the input folders (may be more than one)
 e0 = matlab2Epoch(inputs.dn0);
-eval(['clipFns = dir(''' inputs.pnIn filesep inputs.frameFn '*'');']);
+dum=[inputs.pnIn filesep inputs.frameFn,'*'];
+clipFns = dir(dum);
 NClips = length(clipFns);
 for i = 1: NClips
     fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*png']);
-    if isempty(fns{i})
-        fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*jpg']);
-    end
+     if isempty(fns{i})
+         fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*jpg']);
+     end
     Nf(i) = length(fns{i});
 end
 nt = sum(Nf);

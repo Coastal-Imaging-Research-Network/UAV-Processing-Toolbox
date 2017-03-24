@@ -22,7 +22,8 @@ function in = makeUAVPn(in)
 % in.pncx = ['/ftp/pub/' in.stationStr '/' num2str(in.dateVect(1)) ...
 %             '/cx/' in.dayFn '/'];    
 in.dayFn = 'demoResults';
-in.pncx = uigetdir([],'select local demo results directory'); % select local demo results directory
+display('Select Directory for local Results to be stored')
+in.pncx = uigetdir([],'Select Directory for local Results to be stored'); % select local demo results directory
         
 % Below (commented out) is the normal frame location for CIL work
 % It has been replaced temporarily by the pathname for the demo clips.  You
@@ -31,7 +32,8 @@ in.pncx = uigetdir([],'select local demo results directory'); % select local dem
 
 %in.pnIn = ['/scratch/temp/holman/' in.stationStr '/' num2str(in.dateVect(1)) '/'];
 
-in.pnIn = uigetdir([],'select local demo storage directory');
+display('Select Directory where movie frames are located')
+in.pnIn = uigetdir([],'Select Directory where movie frames are located');
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
