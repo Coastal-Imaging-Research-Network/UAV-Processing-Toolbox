@@ -11,7 +11,7 @@ hold on
 % two potential calls to this -- with 'old' insts struct or with 'r'
 %  from using PIXEL toolbox. insts needs UV built, r has them
 
-if( isstruct( insts ) )
+if( isfield( insts, 'cams' ) )
     
     r = insts;    % put it in terms John knows
     plot( r.cams(1).U, r.cams(1).V, '.' );

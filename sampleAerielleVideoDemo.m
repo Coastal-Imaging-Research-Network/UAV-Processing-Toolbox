@@ -82,7 +82,7 @@ if ~isempty(foo)
 end
 if ~isempty(foo)
     oldGeoms = 1;           % flag that old geoms exist and load
-    load([inputs.pncx foo(1).name]); 
+    load([inputs.pncx filesep foo(1).name]); 
     betas = meta.betas;
 else
     % if no metafile is found, I initialize one
@@ -93,6 +93,8 @@ end
 
 % set up instruments and stacks - always do this.
 insts = fillInsts(insts,betas(1,:),meta);
+
+%%
 showInsts(I,insts,betas(1,:),meta.globals);     % plot them to make sure sensible
 % if you don't see what you hoped to see, stop and re-create instruments.
 foo = input('Hit Ctrl-C if instruments not proper in Figure 3, otherwise <Enter> ');
@@ -113,7 +115,7 @@ if  oldGeoms==0
     metaFn = argusFilename(info);
     meta.gcpFn = inputs.gcpFn; meta.gcpList = inputs.gcpList;
     meta.betas = betas;
-    eval(['save ' inputs.pncx metaFn ' meta'])
+    eval(['save ' inputs.pncx filesep metaFn ' meta'])
 end
 
 % if I have only ONE beta, then I'm working with a new meta file, must do

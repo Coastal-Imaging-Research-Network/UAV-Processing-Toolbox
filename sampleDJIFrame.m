@@ -5,7 +5,7 @@ function data = sampleDJIFrame(insts, I, beta, globs)
 %  by the instrument descriptions in insts, created by makeDJIInsts
 %%U = 1:globs.lcp.NU;
 %%V = 1:globs.lcp.NV;
-if( isstruct( insts ) )    % actually 'r'
+if( isfield( insts, 'cams' ) )    % actually 'r'
     xyzAll = insts.cams(1).XYZ;
     data = nan(1,size(xyzAll,1));
     UV = round(findUVnDOF( beta, xyzAll, globs));
