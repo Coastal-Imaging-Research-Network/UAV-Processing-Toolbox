@@ -5,8 +5,8 @@
 inputs.stationStr = 'Aerielle';  
 inputs.dateVect = [2015 10 1 19+4 29 0];       % date/time of first frame
 inputs.dt = 0.5/(24*3600);           % delta t (s) converted to datenums
-inputs.frameFn = 'demoClip';            % root of frames folder name
-inputs.gcpFn = [pwd, filesep, 'demoGCPFile.mat'];
+inputs.frameFn = 'demoClip';            % root of frame names
+inputs.gcpFn = [pwd, filesep, 'demoGCPFile.mat'];   % File that contains the names and locations of all the possible GCPs 
 inputs.instsFn = [pwd, filesep,'demoInstsFile'];            % instrument m-file location
 
 

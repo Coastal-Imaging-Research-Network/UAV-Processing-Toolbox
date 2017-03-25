@@ -22,8 +22,10 @@ function in = makeUAVPn(in)
 % in.pncx = ['/ftp/pub/' in.stationStr '/' num2str(in.dateVect(1)) ...
 %             '/cx/' in.dayFn '/'];    
 in.dayFn = 'demoResults';
-in.pncx = uigetdir([],'select local demo results directory'); % select local demo results directory
-        
+display('Select Directory for local Results to be stored')
+in.pncx = uigetdir([],'Select Directory for local Results to be stored'); % select local demo results directory
+in.pncx=[in.pncx,filesep]; %add file separator at end of path for proper path saving       
+
 % Below (commented out) is the normal frame location for CIL work
 % It has been replaced temporarily by the pathname for the demo clips.  You
 % should definitely NOT store your data in the toolbox, so you need to
@@ -31,9 +33,8 @@ in.pncx = uigetdir([],'select local demo results directory'); % select local dem
 
 %in.pnIn = ['/scratch/temp/holman/' in.stationStr '/' num2str(in.dateVect(1)) '/'];
 
-
-in.pnIn = uigetdir([],'select local demo input directory');
-
+display('Select Local input Directory (Contains folders of images)')
+in.pnIn = uigetdir([],'Select Local input Directory (Contains folders of images)');
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
