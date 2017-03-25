@@ -33,7 +33,6 @@ in.pncx=[in.pncx,filesep]; %add file separator at end of path for proper path sa
 
 %in.pnIn = ['/scratch/temp/holman/' in.stationStr '/' num2str(in.dateVect(1)) '/'];
 
-
 display('Select Local input Directory (Contains folders of images)')
 in.pnIn = uigetdir([],'Select Local input Directory (Contains folders of images)');
 
