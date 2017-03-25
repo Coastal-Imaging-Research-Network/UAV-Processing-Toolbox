@@ -78,7 +78,6 @@ else
         images.dark(:,:,i) = bar;
     end
     images.N(good) = images.N(good)+1;
-    
 end
 
 %
