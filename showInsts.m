@@ -7,11 +7,23 @@ figure(3); clf
 imagesc(I)
 hold on
 
-for i = 1: length(insts)
-    xyz = [insts(i).xyzAll];
-    UV = findUVnDOF(beta,xyz, globs);
-    UV = reshape(UV,[],2);
-    plot(UV(:,1),UV(:,2),'.')
+
+% two potential calls to this -- with 'old' insts struct or with 'r'
+%  from using PIXEL toolbox. insts needs UV built, r has them
+
+if( isfield( insts, 'cams' ) )
+    
+    r = insts;    % put it in terms John knows
+    plot( r.cams(1).U, r.cams(1).V, '.' );
+    
+else
+    
+    for i = 1: length(insts)
+        xyz = [insts(i).xyzAll];
+        UV = findUVnDOF(beta,xyz, globs);
+        UV = reshape(UV,[],2);
+        plot(UV(:,1),UV(:,2),'.')
+    end
 end
 
 %

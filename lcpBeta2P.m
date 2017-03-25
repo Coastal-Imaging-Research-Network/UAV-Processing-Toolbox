@@ -1,33 +1,31 @@
-function xyz = DJIFindXYZ6dof(U, V, z, b, lcp)
-%   xyz = DJIFindXYZ6dof(U, V, z, beta, lcp)
+function P = lcpBeta2P( lcp, beta )
+
+% function P = lcpBeta2P( lcp, beta )
 %
-% finds the world coordinates corresponding to a DJI pixel at coords UV, at
-% an equivalent vertical location specified by z.  beta is the six dof
-% extrinsic parameters [xyzCam azimuth tilt roll] where angles are in
-% radians.  lcp and image size NU, NV are also needed.
+%  create a P matrix from the lcp and beta
+%
+%   used by findUV6DOF and findXYZnDOF and to make things
+%   for pixel toolbox geometry.
 
-[u2,v2] = DJIUndistort(U(:),V(:),lcp);  % undistort
-
-% build projection matrix in chip pixels
-K = [lcp.fx 0 lcp.c0U;          % chip scale K
+K = [lcp.fx 0 lcp.c0U;
      0 -lcp.fy lcp.c0V;
      0  0 1];
 
-R = angles2R(b(4), b(5), b(6));
-IC = [eye(3) -b(1:3)'];
+R = angles2R(beta(4), beta(5), beta(6));
+IC = [eye(3) -beta(1:3)'];
 P = K*R*IC;
 P = P/P(3,4);   % unnecessary since we will also normalize UVs
-m = P2m(P);
-xyz = findXYZ(m,[u2 v2], z, 3);
+
+return;
 
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
 %                       and Oregon State University
 
-%    This program is free software: you can redistribute it and/or  
-%    modify it under the terms of the GNU General Public License as 
-%    published by the Free Software Foundation, version 3 of the 
+%    This program is free software: you can redistribute it and/or
+%    modify it under the terms of the GNU General Public License as
+%    published by the Free Software Foundation, version 3 of the
 %    License.
 
 %    This program is distributed in the hope that it will be useful,
@@ -44,4 +42,3 @@ xyz = findXYZ(m,[u2 v2], z, 3);
 %
 %key UAVProcessingToolbox
 %
-

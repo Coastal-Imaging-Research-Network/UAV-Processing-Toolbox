@@ -1,26 +1,27 @@
-function [ud,vd] = DJIDistort(u,v,lcp)
-%   [ud,vd] = DJIDistort(u,v,lcp)
+function [u,v] = undistortCaltech(ud,vd, lcp)
+%   [u,v] = DJIUnDistort(ud,vd,lcp)
 % 
-% converts from undistorted to distorted pixel locations for a DJI phantom.
-%  This is based on equations from the Caltech lens distortion manuals.  
-%  lcp contains all the relevant intrinsic as well as radial and tangential
-%  distortion coefficients.
-
-% written Dec 2015, updated from a now obsolete version that used a single
-% lens calibration for the largest (chip size) image while converting from
-% smaller image types.  This was found not to work for phantom 3s.
+% converts from distorted to undistorted pixel locations for a DJI phantom.
+%  This is based on the Caltech cam cal equations.  This routine replaces
+%  an obsolete version that mapped to and from chip space.
 
 % find the range dependent correction factor, fr.
-x = (u(:)-lcp.c0U)/lcp.fx;  % normalize to tanAlpha
-y = (v(:)-lcp.c0V)/lcp.fy;
-r2 = x.*x + y.*y;   % distortion found based on Large format units
-fr = interp1(lcp.r,lcp.fr,sqrt(r2));
-dx = interp2(lcp.x,lcp.y,lcp.dx,x,y);
-dy = interp2(lcp.x,lcp.y,lcp.dy,x,y);
-x2 = x.*fr + dx;
-y2 = y.*fr + dy;
-ud = x2*lcp.fx+lcp.c0U;       % answer in chip pixel units
-vd = y2*lcp.fy+lcp.c0V;
+x = (ud-lcp.c0U)/lcp.fx;  
+y = (vd-lcp.c0V)/lcp.fy;
+r = sqrt(x.*x + y.*y);   % radius in distorted pixels
+r2 = interp1(lcp.fr.*lcp.r,lcp.r,r);    % interp into distorted r space
+if r~=0
+    x2 = x./r.*r2;       % undistort range
+    y2 = y./r.*r2;
+    x3 = x2 - interp2(lcp.x,lcp.y,lcp.dx,x2,y2)./r.*r2;    % assume small dx
+    y3 = y2 - interp2(lcp.x,lcp.y,lcp.dy,x2,y2)./r.*r2;
+    u = x3*lcp.fx + lcp.c0U;
+    v = y3*lcp.fy + lcp.c0V;
+else
+    u = ud;     % camera center pixel is unchanged by distortion
+    v = vd;
+end
+
 
 
 %

@@ -31,7 +31,9 @@ in.pncx = uigetdir([],'select local demo results directory'); % select local dem
 
 %in.pnIn = ['/scratch/temp/holman/' in.stationStr '/' num2str(in.dateVect(1)) '/'];
 
-in.pnIn = uigetdir([],'select local demo storage directory');
+
+in.pnIn = uigetdir([],'select local demo input directory');
+
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
