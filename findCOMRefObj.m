@@ -18,6 +18,10 @@ minNGood = 4;           % fail if we don't find at least this # pixels
 uv = round(findUVnDOF(beta,xyz(i,:),meta.globals));
 URef = [uv(1)-dUV(1,1): uv(1)+dUV(1,1)];
 VRef = [uv(2)-dUV(1,2): uv(2)+dUV(1,2)];
+% you may not go off the edge!
+VRef = VRef( find(VRef>0)); VRef = VRef( find(VRef<size(I,1)+1));
+URef = URef( find(URef>0)); URef = URef( find(URef<size(I,2)+1));
+
 I2 = I(VRef,URef);
 [U,V] = meshgrid(URef,VRef);
 good = find(I2>thresh(i));
@@ -55,3 +59,28 @@ for i = 2: size(xyz,1)
         plot(Ur(i),Vr(i),'r*')
     end
 end
+
+%
+%   Copyright (C) 2017  Coastal Imaging Research Network
+%                       and Oregon State University
+
+%    This program is free software: you can redistribute it and/or  
+%    modify it under the terms of the GNU General Public License as 
+%    published by the Free Software Foundation, version 3 of the 
+%    License.
+
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see
+%                                <http://www.gnu.org/licenses/>.
+
+% CIRN: https://coastal-imaging-research-network.github.io/
+% CIL:  http://cil-www.coas.oregonstate.edu
+%
+%key UAVProcessingToolbox
+%
+

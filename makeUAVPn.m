@@ -22,8 +22,10 @@ function in = makeUAVPn(in)
 % in.pncx = ['/ftp/pub/' in.stationStr '/' num2str(in.dateVect(1)) ...
 %             '/cx/' in.dayFn '/'];    
 in.dayFn = 'demoResults';
-in.pncx = uigetdir([],'select local demo results directory'); % select local demo results directory
-        
+display('Select Directory for local Results to be stored')
+in.pncx = uigetdir([],'Select Directory for local Results to be stored'); % select local demo results directory
+in.pncx=[in.pncx,filesep]; %add file separator at end of path for proper path saving       
+
 % Below (commented out) is the normal frame location for CIL work
 % It has been replaced temporarily by the pathname for the demo clips.  You
 % should definitely NOT store your data in the toolbox, so you need to
@@ -31,4 +33,30 @@ in.pncx = uigetdir([],'select local demo results directory'); % select local dem
 
 %in.pnIn = ['/scratch/temp/holman/' in.stationStr '/' num2str(in.dateVect(1)) '/'];
 
-in.pnIn = uigetdir([],'select local demo storage directory');       % local demo storage location
+display('Select Local input Directory (Contains folders of images)')
+in.pnIn = uigetdir([],'Select Local input Directory (Contains folders of images)');
+
+%
+%   Copyright (C) 2017  Coastal Imaging Research Network
+%                       and Oregon State University
+
+%    This program is free software: you can redistribute it and/or  
+%    modify it under the terms of the GNU General Public License as 
+%    published by the Free Software Foundation, version 3 of the 
+%    License.
+
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see
+%                                <http://www.gnu.org/licenses/>.
+
+% CIRN: https://coastal-imaging-research-network.github.io/
+% CIL:  http://cil-www.coas.oregonstate.edu
+%
+%key UAVProcessingToolbox
+%
+

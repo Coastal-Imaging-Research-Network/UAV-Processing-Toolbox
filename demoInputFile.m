@@ -5,9 +5,10 @@
 inputs.stationStr = 'Aerielle';  
 inputs.dateVect = [2015 10 1 19+4 29 0];       % date/time of first frame
 inputs.dt = 0.5/(24*3600);           % delta t (s) converted to datenums
-inputs.frameFn = 'demoClip';            % root of frames folder name
-inputs.gcpFn = [pwd, filesep, 'demoGCPFile.mat'];
+inputs.frameFn = 'demoClip';            % root of frame names
+inputs.gcpFn = [pwd, filesep, 'demoGCPFile.mat'];   % File that contains the names and locations of all the possible GCPs 
 inputs.instsFn = [pwd, filesep,'demoInstsFile'];            % instrument m-file location
+
 
 % 2.  Geometry solution Inputs:
 % The six extrinsic variables, the camera location and viewing angles
@@ -43,4 +44,29 @@ bs = [inputs.xyCam inputs.zCam inputs.azTilt inputs.roll];  % fullvector
 inputs.beta0 = bs(find(~inputs.knownFlags));
 inputs.knowns = bs(find(inputs.knownFlags));
 
+
+
+%
+%   Copyright (C) 2017  Coastal Imaging Research Network
+%                       and Oregon State University
+
+%    This program is free software: you can redistribute it and/or  
+%    modify it under the terms of the GNU General Public License as 
+%    published by the Free Software Foundation, version 3 of the 
+%    License.
+
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see
+%                                <http://www.gnu.org/licenses/>.
+
+% CIRN: https://coastal-imaging-research-network.github.io/
+% CIL:  http://cil-www.coas.oregonstate.edu
+%
+%key UAVProcessingToolbox
+%
 

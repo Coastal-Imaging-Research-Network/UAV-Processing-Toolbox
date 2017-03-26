@@ -10,6 +10,8 @@
 clear
 close all
 
+addpath(genpath('.')) % adds folder dependencies 
+
 % required USER INPUT material.  Adapt to each collection
 demoInputFile;      % this file contains all of the required inputs.
 
@@ -35,13 +37,14 @@ load(inputs.gcpFn);             % load gcps
 
 % find the input folders (may be more than one)
 e0 = matlab2Epoch(inputs.dn0);
-eval(['clipFns = dir(''' inputs.pnIn filesep inputs.frameFn '*'');']);
+dum=[inputs.pnIn filesep inputs.frameFn,'*'];
+clipFns = dir(dum);
 NClips = length(clipFns);
 for i = 1: NClips
     fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*png']);
-    if isempty(fns{i})
-        fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*jpg']);
-    end
+     if isempty(fns{i})
+         fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*jpg']);
+     end
     Nf(i) = length(fns{i});
 end
 nt = sum(Nf);
@@ -82,7 +85,7 @@ if ~isempty(foo)
 end
 if ~isempty(foo)
     oldGeoms = 1;           % flag that old geoms exist and load
-    load([inputs.pncx foo(1).name]); 
+    load([inputs.pncx filesep foo(1).name]); 
     betas = meta.betas;
 else
     % if no metafile is found, I initialize one
@@ -93,6 +96,8 @@ end
 
 % set up instruments and stacks - always do this.
 insts = fillInsts(insts,betas(1,:),meta);
+
+%%
 showInsts(I,insts,betas(1,:),meta.globals);     % plot them to make sure sensible
 % if you don't see what you hoped to see, stop and re-create instruments.
 foo = input('Hit Ctrl-C if instruments not proper in Figure 3, otherwise <Enter> ');
@@ -113,7 +118,7 @@ if  oldGeoms==0
     metaFn = argusFilename(info);
     meta.gcpFn = inputs.gcpFn; meta.gcpList = inputs.gcpList;
     meta.betas = betas;
-    eval(['save ' inputs.pncx metaFn ' meta'])
+    eval(['save ' inputs.pncx filesep metaFn ' meta'])
 end
 
 % if I have only ONE beta, then I'm working with a new meta file, must do
@@ -225,3 +230,28 @@ elseif( sum(Nf) ~= max(find(~isnan(betas(:,1)))) )
         'failure in geoometry solution at frame ' num2str(cnt) ' or ' ...
         'failure to lock on base reference point in previous run.'] );
 end
+
+%
+%   Copyright (C) 2017  Coastal Imaging Research Network
+%                       and Oregon State University
+
+%    This program is free software: you can redistribute it and/or  
+%    modify it under the terms of the GNU General Public License as 
+%    published by the Free Software Foundation, version 3 of the 
+%    License.
+
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+
+%    You should have received a copy of the GNU General Public License
+%    along with this program.  If not, see
+%                                <http://www.gnu.org/licenses/>.
+
+% CIRN: https://coastal-imaging-research-network.github.io/
+% CIL:  http://cil-www.coas.oregonstate.edu
+%
+%key UAVProcessingToolbox
+%
+
