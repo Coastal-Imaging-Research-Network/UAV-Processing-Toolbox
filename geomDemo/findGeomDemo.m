@@ -3,11 +3,11 @@
 
 clear
 
-% 1.  input info for GCP LCP and I data:
+% 1.  input info for Ground Control Point (GCP) LCP and image data:
 inputs.stationStr = 'Aerielle';
-inputs.gcpFn = [pwd, filesep, 'demoGCPFile.mat'];
-inputs.Ifn = [pwd, filesep, 'exampleSnapP3P.png'];
-
+inputs.gcpFn = uigetdir([],'select directory that contains demoGCPFile.mat');
+inputs.Ifn = uigetdir([],'select directory that contains exampleSnapP3P.png');
+ 
 % 2.  Geometry solution Inputs:
 % The six extrinsic variables, the camera location and viewing angles
 % in the order [ xCam yCam zCam Azimuth Tilt Roll].
@@ -17,6 +17,13 @@ inputs.Ifn = [pwd, filesep, 'exampleSnapP3P.png'];
 % Enter values for all parameters below.  If the variable is known, the
 % routine will use this data.  If not, this will be the seed for the
 % nonlinear search.
+
+prompt = {'This vector defines the six extrinsic variables: the camera location and viewing angles in the order [ xCam yCam zCam Azimuth Tilt Roll'};
+dlg_title = 'Known Extrinsic Variable Flags';
+num_lines = 1;
+defaultans = {'20','hsv'};
+answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
+
 inputs.knownFlags = [0 0 0 0 0 0];
 inputs.xyCam = [0 600];
 inputs.zCam = 100;             % based on last data run                
