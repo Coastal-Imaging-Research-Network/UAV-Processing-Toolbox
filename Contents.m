@@ -25,14 +25,12 @@
 %
 % Support minor routines
 %   findUVnDOF      - find U,V for any xyz using n dof geometry
-%   findXYZ6dof     - find XYZ for any UV using 6 dof geometry
-%   undistort       - convert from distorted to undistorted coords
-%   distort         - convert from undistorted to distorted
+%   DJIFindXYZ6dof  - find XYZ for any UV using 6 dof geometry
+%   DJIUndistort    - convert from distorted to undistorted coords
 %   makeUAVPn       - create good pathnames for CIL expectations
 %   makefr          - used in distortion, f(r).
 %   makeRadDist     - radial distance for distortion calcs
 %   makeTangDist    - tangential distance for distortion calcs
-%   lcpBeta2P       - build a P matrix from lcp and beta (angles)
 %
 % CILroutines that are called
 %   findXYZ         - find XYZ for any UV

@@ -10,8 +10,6 @@
 clear
 close all
 
-addpath(genpath('.')) % adds folder dependencies 
-
 % required USER INPUT material.  Adapt to each collection
 demoInputFile;      % this file contains all of the required inputs.
 
@@ -37,14 +35,13 @@ load(inputs.gcpFn);             % load gcps
 
 % find the input folders (may be more than one)
 e0 = matlab2Epoch(inputs.dn0);
-dum=[inputs.pnIn filesep inputs.frameFn,'*'];
-clipFns = dir(dum);
+eval(['clipFns = dir(''' inputs.pnIn filesep inputs.frameFn '*'');']);
 NClips = length(clipFns);
 for i = 1: NClips
     fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*png']);
-     if isempty(fns{i})
-         fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*jpg']);
-     end
+    if isempty(fns{i})
+        fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*jpg']);
+    end
     Nf(i) = length(fns{i});
 end
 nt = sum(Nf);
@@ -85,7 +82,7 @@ if ~isempty(foo)
 end
 if ~isempty(foo)
     oldGeoms = 1;           % flag that old geoms exist and load
-    load([inputs.pncx filesep foo(1).name]); 
+    load([inputs.pncx foo(1).name]); 
     betas = meta.betas;
 else
     % if no metafile is found, I initialize one
@@ -96,8 +93,6 @@ end
 
 % set up instruments and stacks - always do this.
 insts = fillInsts(insts,betas(1,:),meta);
-
-%%
 showInsts(I,insts,betas(1,:),meta.globals);     % plot them to make sure sensible
 % if you don't see what you hoped to see, stop and re-create instruments.
 foo = input('Hit Ctrl-C if instruments not proper in Figure 3, otherwise <Enter> ');
@@ -118,7 +113,7 @@ if  oldGeoms==0
     metaFn = argusFilename(info);
     meta.gcpFn = inputs.gcpFn; meta.gcpList = inputs.gcpList;
     meta.betas = betas;
-    eval(['save ' inputs.pncx filesep metaFn ' meta'])
+    eval(['save ' inputs.pncx metaFn ' meta'])
 end
 
 % if I have only ONE beta, then I'm working with a new meta file, must do

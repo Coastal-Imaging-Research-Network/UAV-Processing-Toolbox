@@ -18,10 +18,6 @@ minNGood = 4;           % fail if we don't find at least this # pixels
 uv = round(findUVnDOF(beta,xyz(i,:),meta.globals));
 URef = [uv(1)-dUV(1,1): uv(1)+dUV(1,1)];
 VRef = [uv(2)-dUV(1,2): uv(2)+dUV(1,2)];
-% you may not go off the edge!
-VRef = VRef( find(VRef>0)); VRef = VRef( find(VRef<size(I,1)+1));
-URef = URef( find(URef>0)); URef = URef( find(URef<size(I,2)+1));
-
 I2 = I(VRef,URef);
 [U,V] = meshgrid(URef,VRef);
 good = find(I2>thresh(i));
