@@ -57,7 +57,7 @@ UV = P*[xyz'; ones(1,size(xyz,1))];
 UV = UV./repmat(UV(3,:),3,1);
 
 %convert undistorted uv coordinates to distorted coordinates
-[U,V] = DJIDistort(UV(1,:),UV(2,:),lcp); 
+[U,V] = distort(UV(1,:),UV(2,:),lcp); 
 UV = round([U; V]);%round to the nearest pixel locations
 UV = reshape(UV,[],2); %reshape the data into something useable
 
