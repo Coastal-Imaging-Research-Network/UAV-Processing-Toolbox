@@ -8,4 +8,3 @@ set inp=%~f2
 mkdir %inp%-extracted
 cd %inp%-extracted
 mplayer -vo png -vf framestep=%inc% %inp%
-
