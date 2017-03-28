@@ -1,10 +1,22 @@
 #!/usr/bin/perl
 
 # every -- extract every nth frame from movie
-# actually, extract them all and then delete, sigh
 #
 #  input: every n moviefile destination
 #
+
+# this program requires 'mplayer' and 'perl'
+# perl is standard on every linux distibution
+# mplayer is in some repos for linux, or from mplayer.ru
+#
+#  for WINDOWS -- 
+# perl is available from strawberryperl.com
+# mplayer is available from 
+#      https://sourceforge.net/projects/mplayerwin/
+# perl will add it's path to the system path at install
+# you must add the mplayer path by hand.
+
+
 
 use Cwd;
 
