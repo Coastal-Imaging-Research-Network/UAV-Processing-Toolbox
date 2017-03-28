@@ -3,7 +3,7 @@
 @rem  this requires mplayer to be on your path
 @rem    https://sourceforge.net/projects/mplayerwin/
 
-set inc=%~f1
+set inc=%1
 set inp=%~f2
 mkdir %inp%-extracted
 cd %inp%-extracted
