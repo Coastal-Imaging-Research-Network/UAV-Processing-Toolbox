@@ -1,13 +1,29 @@
-% Loads the Calib_Results.mat file generated from the Caltech toolbox and
-% saves the distortion coefficients to a structure named lcp
-% Allison Penko 
-% 28 mar 17
-% 
-% Further documentation on how this script works within the UAV Toolbox located 
-% here: https://github.com/Coastal-Imaging-Research-Network/UAV-Processing-Toolbox/wiki/Supporting-Routine-Docs
+function lcp = makeLCPFromCaltech(calib_resultsPn)
+% Creates the lens calibration profile (lcp) for a camera, based on
+%   "Calib_Results.mat" generated from the Caltech Calibration toolbox.
+%
+% Input:
+%   calib_resultsPn = full directory path where "Calib_Results.mat" are saved
+%
+% Output:
+%   lcp = lens calibration profile (struct)
+%
+% Usage: lcp = makeLCPFromCaltech(calib_resultsPn)
+%
+% Revisions: 
+%   Holman, November 2015, at Duck then Corvallis
+%   Allison Penko & Jenna Brown, March 2017, CIRN Boot Camp
+%
+% Further documentation on how this script works within the UAV Toolbox located here: 
+%   https://github.com/Coastal-Imaging-Research-Network/UAV-Processing-Toolbox/wiki/Supporting-Routine-Docs
 
-[calib_resultsFileName,calib_resultsPathName] = uigetfile('*.mat','Select your Calib_Results.mat file');
-load([calib_resultsPathName,calib_resultsFileName])
+if nargin < 1
+    [calib_resultsFn,calib_resultsPn] = uigetfile('*.mat','Select your Calib_Results.mat file');
+end
+if ~strcmp(calib_resultsPn(end),filesep)
+    calib_resultsPn = [calib_resultsPn,filesep];
+end
+load([calib_resultsPn,'\Calib_Results.mat'])
 
             lcp.NU = nx;     % number of pixel columns
             lcp.NV = ny;     % number of pixel rows
@@ -23,9 +39,6 @@ load([calib_resultsPathName,calib_resultsFileName])
             lcp.r = 0:0.001:1.5;    % for processing disortion
             lcp = makeRadDist(lcp);
             lcp = makeTangDist(lcp);    % add tangential dist template
-
-dataFileDir = uigetdir([],'Select directory to save lcp.mat');
-save([dataFileDir,filesep, 'lcp.mat'],'lcp')
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
