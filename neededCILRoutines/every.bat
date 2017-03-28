@@ -1,6 +1,13 @@
-@rem put this where the mp4 file is
-@rem  run it with "every 15 mp4name"
-@rem  this requires mplayer to be on your path
+@rem Program to extract frames from a video
+@rem 	(save this program where the video file is located)
+@rem
+@rem Input:
+@rem 	N = interval number of frames to extract/save
+@rem	videoFilename = name of the video file
+@rem
+@rem  Usage: every N videoFilename
+@rem
+@rem  Note: Requires mplayer.exe to be on your system path
 @rem    https://sourceforge.net/projects/mplayerwin/
 
 set inc=%1
