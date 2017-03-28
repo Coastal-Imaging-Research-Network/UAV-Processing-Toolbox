@@ -2,6 +2,9 @@
 % saves the distortion coefficients to a structure named lcp
 % Allison Penko 
 % 28 mar 17
+% 
+% Further documentation on how this script works within the UAV Toolbox located 
+% here: https://github.com/Coastal-Imaging-Research-Network/UAV-Processing-Toolbox/wiki/Supporting-Routine-Docs
 
 [calib_resultsFileName,calib_resultsPathName] = uigetfile('*.mat','Select your Calib_Results.mat file');
 load([calib_resultsPathName,calib_resultsFileName])
