@@ -28,9 +28,29 @@ for i = 1: nGcps
     disp(['Digitize ' gcp(in.gcpList(i)).name])
     UV(i,:) = ginput(1);     
 end
-beta = nlinfit(xyz,[UV(:,1); UV(:,2)],'findUVnDOF',in.beta0);
+if(~isfield(in,'doError'))
+  beta = nlinfit(xyz,[UV(:,1); UV(:,2)],'findUVnDOF',in.beta0);
+else  % GW: correction using regularized least squares
+
+  UVerr=1;  % user GCP pick error in pixels (assume)
+  costFN = @(beta) sum( ([UV(:,1); UV(:,2)]-findUVnDOF(beta,xyz)).^2/UVerr^2 ) ...
+           + sum( (beta-in.beta0).^2./in.betasErr.^2 );
+
+  % % v1: fminsearch tends to gets stuck in local minimum, unless
+  % % initialized with nlinfit solution
+  % betaguess = nlinfit(xyz,[UV(:,1); UV(:,2)],'findUVnDOF',in.beta0);
+  % beta = fminsearch(costFN,betaguess);
+
+  % v2: using 'globalsearch', result is not sensitive to initial guess
+  problem = createOptimProblem('fmincon','objective',costFN,...
+                               'x0',in.beta0,'lb',in.betasLB,'ub',in.betasUB);
+  gs = GlobalSearch;
+  beta = run(gs,problem);
+
+end
 beta6DOF(find(globs.knownFlags)) = globs.knowns;
 beta6DOF(find(~globs.knownFlags)) = beta;
+
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
 %                       and Oregon State University
