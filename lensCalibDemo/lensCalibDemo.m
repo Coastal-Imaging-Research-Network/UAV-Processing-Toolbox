@@ -6,11 +6,15 @@ clear all
 close all
 
 % make sure you are in the /UAV-Processing-Toolbox/lensCalibDemo/ directory where lensCalibDemo.m is located 
-cd('YOUR_DIRECTORY/UAV-Processing-Toolbox/lensCalibDemo/')
+disp('Choose the directory where lensCalibDemo.m and images are located');
+demo_dir=uigetdir('.','Choose the directory where lensCalibDemo.m and images are located');
+cd(demo_dir)
 
-% add the path to where the caltech toolbox is located 
+% add the path to where the caltech toolbox is located
+disp('Choose the directory where the Caltech Toolbox is located');
 warning('off')
-addpath(genpath('YOUR_MATLAB_DIRECTORY'))
+caltech_dir=uigetdir('.','Choose the directory where the Caltech Toolbox is located');
+addpath(genpath(caltech_dir))
 
 % add the UAV Toolbox path + subdirectories 
 addpath(genpath('../'))
