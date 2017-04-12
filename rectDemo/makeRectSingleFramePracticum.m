@@ -9,8 +9,8 @@ function frameRect=makeRectSingleFramePracticum(I,xy,z, beta, lcp)
 %xy = vector of xy information [xmin dx xmax ymin dy ymax]
 %z = single elevation or grid of z elevations
 %beta = geometry (extrinsics) from specified frame [camera X, camera Y, 
-%camera Z, azimuth, tilt, roll] ***NOTE: azimuth is in geographic angles,
-%not math angles here
+%camera Z, azimuth, tilt, roll] NOTE:all angles are in radians in your
+%local coordinate system
 %lcp = intrinsic values
 
 %Outputs:
