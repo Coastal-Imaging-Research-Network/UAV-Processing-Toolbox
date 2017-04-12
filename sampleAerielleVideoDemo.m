@@ -10,8 +10,6 @@
 clear
 close all
 
-addpath(genpath('.')) % adds folder dependencies 
-
 % required USER INPUT material.  Adapt to each collection
 demoInputFile;      % this file contains all of the required inputs.
 
@@ -20,31 +18,21 @@ if ~exist(inputs.pncx)
     mkdir(inputs.pncx)
 end
 
-inds = strfind(inputs.instsFn, filesep);
-if isempty(inds)
-    eval(['insts = ' inputs.instsFn ';']);
-else
-    p = pwd; eval(['cd ' inputs.instsFn(1:inds(end))])
-    eval(['insts = ' inputs.instsFn(inds(end)+1:end) ';']);
-    eval(['cd ' p]); clear p
-end
-clear inds
+% build the instruments we want. can't go all the way yet, no geom
+r = makePixelInstsDemo;
 
-for i = 1: length(insts)        % save inst info as part of stacks
-    stack(i).inst = insts(i);
-end
 load(inputs.gcpFn);             % load gcps
 
 % find the input folders (may be more than one)
+Nf = [];
 e0 = matlab2Epoch(inputs.dn0);
-dum=[inputs.pnIn filesep inputs.frameFn,'*'];
-clipFns = dir(dum);
+clipFns = dir( [ inputs.pnIn filesep inputs.frameFn '*' ]);
 NClips = length(clipFns);
 for i = 1: NClips
     fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*png']);
-     if isempty(fns{i})
-         fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*jpg']);
-     end
+    if isempty(fns{i})
+        fns{i} = dir([inputs.pnIn filesep clipFns(i).name filesep '*jpg']);
+    end
     Nf(i) = length(fns{i});
 end
 nt = sum(Nf);
@@ -66,6 +54,8 @@ meta.globals.knownFlags = inputs.knownFlags;
 meta.globals.knowns = inputs.knowns;   
 clear NU NV NC 
 
+%%
+
 % When geometries are solved for each frame in turn, the results are saved
 % in a metadata file in the cx folder for this day.  First search to see if
 % such a folder already exists, in which we don't have to re-do all of the
@@ -73,7 +63,7 @@ clear NU NV NC
 % digits in epoch time.
 
 bar = num2str(e0);
-foo = dir([inputs.pncx bar(1:9) '*meta*']);
+foo = dir([inputs.pncx filesep bar(1:9) '*meta*']);
 % report the use of an old metadata file, ask for ok
 if ~isempty(foo)
     yn = input(['Found old metadata file ' foo(1).name '\n' ...
@@ -94,21 +84,26 @@ else
     [betas(1,:),meta.refPoints] = initUAVAnalysis(I, gcp, inputs, meta);
 end
 
-% set up instruments and stacks - always do this.
-insts = fillInsts(insts,betas(1,:),meta);
-
 %%
-showInsts(I,insts,betas(1,:),meta.globals);     % plot them to make sure sensible
+
+% set up instruments and stacks - always do this.
+[geom, cam, ip] = lcpBeta2GeomCamIp( meta.globals.lcp, betas(1,:) );
+r = PIXParameterizeR( r, cam, geom, ip );
+
+r = PIXRebuildCollect( r );
+
+showInsts(I, r);
+
 % if you don't see what you hoped to see, stop and re-create instruments.
 foo = input('Hit Ctrl-C if instruments not proper in Figure 3, otherwise <Enter> ');
+
 % save the info in the stacks structure.
-for i = 1: length(insts)
-    stack(i).inst = insts(i);
-    stack(i).dn = dn;
-    stack(i).xyzAll = insts(i).xyzAll;
-    nPix = size(insts(i).xyzAll,1);
-    stack(i).data = nan(nt,nPix,1);        % initialize data
-end
+stack.r = r;
+nPix = size(r.cams(1).U, 1);
+stack.data = nan(nt, nPix, 1 );
+
+%%
+
 xlabel('x (m)'); ylabel('y (m)'); title('Demo Run Time Exposure')
 
 % now save metadata if it wasn't already there
@@ -118,8 +113,10 @@ if  oldGeoms==0
     metaFn = argusFilename(info);
     meta.gcpFn = inputs.gcpFn; meta.gcpList = inputs.gcpList;
     meta.betas = betas;
-    eval(['save ' inputs.pncx filesep metaFn ' meta'])
+    eval(['save ' inputs.pncx metaFn ' meta'])
 end
+
+%%
 
 % if I have only ONE beta, then I'm working with a new meta file, must do
 % geometries. reuse oldGeoms flag for this
@@ -130,16 +127,19 @@ elseif max(find(~isnan(betas(:,1))))<sum(Nf)
         'for ' num2str(sum(Nf)) ' images. Proceeding ...' ] );
 end
 
+%%
+
 % Now sample the frames, starting with the first. 
-data = sampleDJIFrame(insts, Ig, betas(1,:), meta.globals); % fill first frame
-for i = 1: length(data)
-    stack(i).data(1,:) = data(i).I';
-end
+data = sampleDJIFrame(r, Ig, betas(1,:), meta.globals); % fill first frame
+stack.data(1,:) = data';
+
 if inputs.doImageProducts
     images.xy = inputs.rectxy;   
     images.z = inputs.rectz;
     images = buildRectProducts(dn(1), images, I, betas(1,:), meta.globals); % initial frame init
 end
+
+%%
 
 tic;
 nTic = 5;
@@ -185,19 +185,22 @@ for clip = 1: NClips    % this is only relevant if you have multiple clips
         if isnan(betas(cnt,1))
             break;
         end
-        data = sampleDJIFrame(insts, Ig, betas(cnt,:), meta.globals);
-        for j = 1: length(data)
-            stack(j).data(cnt,:) = data(j).I';
-        end
+        data = sampleDJIFrame(r, Ig, betas(cnt,:), meta.globals);
+            stack.data(cnt,:) = data';
         if inputs.doImageProducts
             images = buildRectProducts(dn(cnt), images, double(I), ...
                 betas(cnt,:), meta.globals);
         end
     end
 end
+
+%%
+
 if inputs.doImageProducts
     finalImages = makeFinalImages(images);
 end
+
+%%
 
 % now save metadata
 info.time = e0; info.station = inputs.stationStr; info.camera = 'x';
@@ -205,16 +208,10 @@ info.type = 'meta'; info.format = 'mat';
 metaFn = argusFilename(info);
 meta.gcpFn = inputs.gcpFn; meta.gcpList = inputs.gcpList;
 meta.betas = betas;
-eval(['save ' inputs.pncx metaFn ' meta'])
+eval(['save ' inputs.pncx filesep metaFn ' meta'])
 
 % and now the instrument data.  NOTE, data are now called foo!
-foo = stack;
-for i = 1: length(insts)
-    info.type = insts(i).shortName;
-    stackFn = argusFilename(info);
-    stack = foo(i);
-    eval(['save ' inputs.pncx stackFn ' stack'])
-end
+saveStackData( inputs, info, stack );
 
 % print the image products to pngs and save a matlab version
 finalImages.snap = imread([inputs.pnIn filesep clipFns(1).name filesep fns{1}(1).name]);
