@@ -1,6 +1,6 @@
 %% Lens Calibration DEMO 
 % This demo goes though the intrinsic lens calibration due to lens
-% distortion. It is specific to each camera and lens. See the powerpoint
+% distortion. It is specific to each camera and lens. The code is meant to be run line by line while following the powerpoint
 % presentation located HERE => https://drive.google.com/open?id=0B_hxNlYenFbsZTdpU0RnTHFHbE0 
 clear all 
 close all
@@ -41,7 +41,7 @@ calib_gui;
 % # Click "Extract Grid Corners" to start the calibration
 % # Hit "Enter" to process all images
 % # Hit "Enter" 3 times to chose default options for corner finding
-% # Click the 4 grid corners in a CW direction 
+% # Click the 4 grid corners in a clock wise direction 
 % # Type "60" for dX and dY as the size of the squares
 % # Hit "Enter" for default of no distortion
 
