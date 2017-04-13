@@ -14,12 +14,25 @@ function insts = fillInsts(insts,beta,meta)
 %  full matrix of sampling locations in xyzAll.  All are converted to UV
 %  solely for the purpose of removing those which aren't in the initial
 %  image frame.  
-%  Beta is the 6 dof geometry solution.  
+%  Beta is the 6 dof geometry solution.
 
+% Last update: KV WRL 04.2017
+% - rotAngle was included to perform a Z-axis rotation of
+% the pixel instruments around their baricenter
+
+% Rotation matrix
+R3 = @(x) [ cosd(x) -sind(x) 0 
+            sind(x)  cosd(x) 0
+               0        0    1];
 bad = [];
 for i = 1: length(insts)
     switch insts(i).type
         case 'line'
+            
+            % Rotate the line around its center
+            insts(i).xyz = (R3(insts(i).rotAngle)*(insts(i).xyz - repmat(mean(insts(i).xyz), 2, 1))')' ...
+                + repmat(mean(insts(i).xyz), 2, 1);
+            
             UV = findUVnDOF(beta, insts(i).xyz, meta.globals);
             UV = round(reshape(UV,[],2));
             if ~any(isnan(UV(:)))
@@ -45,6 +58,12 @@ for i = 1: length(insts)
             y = [y(1): y(2): y(3)];
             [X,Y] = meshgrid(x,y);
             xyzAll = [X(:) Y(:) repmat(insts(i).z,size(X(:)))];
+            
+            % Rotate the grid around its baricenter
+            meanxyzAll = [mean(x) mean(y) 0];
+            xyzAll = (R3(insts(i).rotAngle)*(xyzAll - repmat(meanxyzAll, length(X(:)), 1))')' ...
+                + repmat(meanxyzAll, length(X(:)), 1);
+            
             % test which will be onScreen (so shouldn't distort to nan)
             UV = findUVnDOF(beta, xyzAll, meta.globals);
             UV = round(reshape(UV,[],2));
