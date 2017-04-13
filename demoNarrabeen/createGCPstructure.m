@@ -37,4 +37,4 @@ gcp(5).z = 44.475;
 
 
 % save the gcpFile
-save('gcpFile.mat','gcp')
+save('gcpFileNarrabeen.mat','gcp')
