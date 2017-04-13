@@ -1,7 +1,9 @@
 function gui_UAV()
 
-% GUI_UAV Graphical User Interface for the UAV Processing Toolbox 
-% developed by CIL (Coastal Imaging Laboratory)
+% gui_UAV Graphical User Interface for the UAV Processing Toolbox
+
+% KV WRL 04.2017
+% Matlab version required: R2016b
 
 close all
 addpath(genpath(pwd));
@@ -50,7 +52,7 @@ hHBoxTab1 = uix.HBox(...
     'Padding', 5,...
     'Spacing', 10);
 
-% Create Panel for inputs
+% Create Panel for inputs (filenames & pathnames)
 hPanelInputs = uix.Panel(...
     'Parent', hHBoxTab1,...
     'Padding', 5,...
@@ -850,7 +852,7 @@ hEdit14b.String = num2str(handles.inputs.rectxy(6));
 hEdit14c.String = num2str(handles.inputs.rectxy(5));
 hEdit15.String = num2str(handles.inputs.rectz);
 
-% Panel intrinsic camera parameters
+% Panel intrinsic camera parameters (cameraName and cameraRes)
 hEdit17a.String = num2str(handles.inputs.cameraRes(1));
 hEdit17b.String = num2str(handles.inputs.cameraRes(2));
 
@@ -1423,6 +1425,7 @@ function buttonFirstframe_CallBack(hObject, eventdata)
     handles = guidata(hObject);
     
     % Initialize a UAV movie analysis using the first frame.
+    % Replaces initUAVAnalysis.m
     
     inputs = handles.inputs;
     try
@@ -1528,8 +1531,6 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         y = [gcp(inputs.gcpList).y];
         z = [gcp(inputs.gcpList).z];
         xyz = [x' y' z'];
-        
-        % Digitize the gcps and find best fit geometry
 
         imagesc(I, 'Parent', hAxesTab3);
 
@@ -1553,8 +1554,10 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         options.Tolfun = 1e-12;
         options.TolX = 1e-12;
         
+        % Non-linear fit, output geometry, residuals, covariance matrix and mse
         [beta, R, ~, CovB, mse, ~] = ....
             nlinfit(xyz, [UV(:,1); UV(:,2)], 'findUVnDOF', inputs.beta0, options);
+        % Compute confidence intervals for each of the fitted parameters
         ci = nlparci(beta, R, 'covar', CovB);
         
         % Fill 1st Beta
@@ -1745,6 +1748,8 @@ end
 
 function buttonBatch_CallBack(hObject, eventdata)
     handles = guidata(hObject);
+    
+    % This button processes the remaining frames and saves the outputs
     
     htextCommand1 = findobj('Tag', 'textCommand1');
     htextCommand2 = findobj('Tag', 'textCommand2');
@@ -2296,6 +2301,8 @@ end
 function buttonShowFiguresArgus_CallBack(hObject, eventdata)
     handles = guidata(hObject);
     
+    % Shows the figures containing Argus-like products
+    
     set(findobj('Tag', 'Snap'), 'Visible', 'on');
     set(findobj('Tag', 'Timex'), 'Visible', 'on');
     set(findobj('Tag', 'Max'), 'Visible', 'on');
@@ -2310,7 +2317,9 @@ end
 
 function buttonShowFiguresGeom_CallBack(hObject, eventdata)
     handles = guidata(hObject);
-
+    
+    % Shows the figures containing the geometries
+    
     set(findobj('Tag', 'Position'), 'Visible', 'on');
     set(findobj('Tag', 'Coordinates'), 'Visible', 'on');
     set(findobj('Tag', 'Attitude'), 'Visible', 'on');
