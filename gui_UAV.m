@@ -1331,24 +1331,18 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     
     handles.gcp = gcpFile.gcp;
     
-    % Convert from Local to Argus coordinates
-    % Origin of Argus coordinate system
-    XorgArg = handles.inputs.ArgusCoordsys.X0;
-    YorgArg = handles.inputs.ArgusCoordsys.Y0;
-    ZorgArg = handles.inputs.ArgusCoordsys.Z0;
-    
-    % Rotation angle to get from local east to argus east, positive counter-clockwise
-    phi = deg2rad(-handles.inputs.ArgusCoordsys.rot);
-    
-    % Rotation matrix
-    rotM = [cos(phi) sin(phi); -sin(phi) cos(phi)];
-    
+    % Convert gcps from Local to Argus coordinates
+    argusOrigin = [handles.inputs.ArgusCoordsys.X0, ...
+                   handles.inputs.ArgusCoordsys.Y0, ...
+                   handles.inputs.ArgusCoordsys.Z0];
+               
+    argusRotation = handles.inputs.ArgusCoordsys.rot;
+   
     for i = 1:length(handles.gcp)
-        coord = [handles.gcp(i).x handles.gcp(i).y];
-        % First translate origin
-        coordTR = coord - [XorgArg YorgArg];
-        % Then rotate all points
-        xyzArg = [(rotM*coordTR')' handles.gcp(i).z - ZorgArg];
+        
+        coord = [handles.gcp(i).x handles.gcp(i).y handles.gcp(i).z];
+        
+        xyzArg = local2Argus(coord, argusOrigin, argusRotation);
         
         handles.gcp(i).x = xyzArg(1);
         handles.gcp(i).y = xyzArg(2);
@@ -1378,15 +1372,14 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     handles.camExt.camYaw = camExt_vec(4);
     
     % Convert initial geometry from Local to Argus coordinates
-    coord = camExt_vec(1:2)';
-    coordTR = coord - [XorgArg YorgArg];
-    xyArg = (rotM*coordTR')';
+    coord = camExt_vec(1:3)';
+    xyzArg = local2Argus(coord, argusOrigin, argusRotation);
     
     % Subtract Argus rotation to Azimuth angle
-    az_corrected = handles.camExt.camYaw - handles.inputs.ArgusCoordsys.rot;
+    az_corrected = handles.camExt.camYaw - argusRotation;
     
     % Fill inputs structure
-    handles.inputs.xyCam = xyArg;
+    handles.inputs.xyCam = xyzArg([1 2]);
     handles.inputs.zCam = handles.camExt.camZ - handles.inputs.ArgusCoordsys.Z0;
     handles.inputs.azTilt = [az_corrected handles.camExt.camTilt] / 180*pi;
     handles.inputs.roll = handles.camExt.camRoll / 180*pi;
@@ -1551,6 +1544,7 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         end
         
         % Find best fit geometry (extrinsic parameters)
+        
         options.Tolfun = 1e-12;
         options.TolX = 1e-12;
         
@@ -2069,23 +2063,24 @@ function buttonBatch_CallBack(hObject, eventdata)
     set(gcf, 'Visible', 'off')
     
     % Make geotiffs
+    [p , q ] = meshgrid(finalImages.x, finalImages.y);
+    XYZ = [p(:) q(:) zeros(length(p(:)),1)];
     
     % Convert from Argus to Local
-    phi = deg2rad(handles.inputs.ArgusCoordsys.rot);
-    % Rotation matrix
-    rotM = [cos(phi) sin(phi); -sin(phi) cos(phi)];
+    argusOrigin = [inputs.ArgusCoordsys.X0, ...
+        inputs.ArgusCoordsys.Y0, ...
+        inputs.ArgusCoordsys.Z0];
+    argusRotation = inputs.ArgusCoordsys.rot;
     
-    [p , q ] = meshgrid(finalImages.x, finalImages.y);
-    XY = [p(:) q(:)]; 
-    XYrot = (rotM*XY')';
-
-    X = unique(XYrot(:,1)) + inputs.ArgusCoordsys.X0;
-    Y = unique(XYrot(:,2)) + inputs.ArgusCoordsys.Y0;
-     
-    % Spatial Reference
+    xyzLocal = argus2Local( XYZ, argusOrigin, argusRotation );
+    
+    X = unique( xyzLocal(:,1));
+    Y = unique( xyzLocal(:,2));
+    
+    % Spatial Reference for geotiff
     R = makerefmat(min(X), min(Y), 0.5, 0.5);
     
-    % Write geotiff with EPSG: 28356 Reference system (GDA94 / MGA56)
+    % Write geotiff in coordinate system chosen by user
     info.type = 'timex';
     info.format = 'tif';
     fn = argusFilename(info);

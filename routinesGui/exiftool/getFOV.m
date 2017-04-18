@@ -4,7 +4,7 @@ function [FOV] = getFOV(snapshotFn)
 exifdata = getexif(snapshotFn);
 
 % Extract FOV (field-of-view) from exif
-FOVString = extract_exifField(exifdata, 'FOV');
+FOVString = findField(exifdata, 'FOV');
 [FOV, remain] = strtok(FOVString);
 FOV = str2double(FOV);
 

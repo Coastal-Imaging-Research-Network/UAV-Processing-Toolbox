@@ -4,7 +4,7 @@ function [t GMT] = getTimestamp(snapshotFn)
 exifdata = getexif(snapshotFn);
 
 % Extract date + time + GMT at which file was modified
-timeString = extract_exifField(exifdata, 'FileModifyDate');
+timeString = findField(exifdata, 'FileModifyDate');
 [year remain] = strtok(timeString, ':');
 t(1) = str2double(year);
 [month remain] = strtok(remain, ':');

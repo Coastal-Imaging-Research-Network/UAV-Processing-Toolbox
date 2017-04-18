@@ -4,12 +4,12 @@ function camExt = getExtrinsicParam(snapshotFn, epsgcode)
 exifdata = getexif(snapshotFn);
 
 % Get camera GPS coordinates
-latString = extract_exifField(exifdata, 'GPSLatitude ');
-lonString = extract_exifField(exifdata, 'GPSLongitude ');
-altString = extract_exifField(exifdata, 'GPSAltitude ');
+latString = findField(exifdata, 'GPSLatitude ');
+lonString = findField(exifdata, 'GPSLongitude ');
+altString = findField(exifdata, 'GPSAltitude ');
 
-hemisphereSN = extract_exifField(exifdata, 'GPSLatitudeRef ');
-hemisphereEW = extract_exifField(exifdata, 'GPSLongitudeRef ');
+hemisphereSN = findField(exifdata, 'GPSLatitudeRef ');
+hemisphereEW = findField(exifdata, 'GPSLongitudeRef ');
 
 [latDeg remain] = strtok(latString);
 latDeg = str2double(latDeg);
@@ -47,9 +47,9 @@ xyepsg = epsgcode;
 camZ = str2double(camZ);
 
 % Get camera attitude
-camPitch = str2double(extract_exifField(exifdata, 'CameraPitch '));
-camRoll = str2double(extract_exifField(exifdata, 'CameraRoll '));
-camYaw = str2double(extract_exifField(exifdata, 'CameraYaw '));
+camPitch = str2double(findField(exifdata, 'CameraPitch '));
+camRoll = str2double(findField(exifdata, 'CameraRoll '));
+camYaw = str2double(findField(exifdata, 'CameraYaw '));
 % Convert Pitch to Tilt
 camTilt = 90 + camPitch;
 
