@@ -68,5 +68,3 @@ inputs.knowns = bs(find(inputs.knownFlags));
 % CIL:  http://cil-www.coas.oregonstate.edu
 %
 %key UAVProcessingToolbox
-%
-

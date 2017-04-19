@@ -253,5 +253,3 @@ end
 % CIL:  http://cil-www.coas.oregonstate.edu
 %
 %key UAVProcessingToolbox
-%
-

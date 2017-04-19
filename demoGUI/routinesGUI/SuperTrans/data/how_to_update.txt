@@ -1,0 +1,16 @@
+to get csv files, there are several options:
+
+1: get them from gdal source code (google gdal)
+2: get it from the source (EPSG).
+
+for option 2, a short how to
+*only for windows PC with MS Excel intalled*
+
+1 download source *.mdb file (MS Acces database) from EPSG: http://www.epsg.org/
+2 open *.mdb with MS Excel, and select one of the data sheets (e.g.'area')
+3 save as *.csv
+4 repeat 2&3 for every *.csv you wish to update
+5 done
+
+run supertrans_csv2mat.m
+
