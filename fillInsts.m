@@ -29,9 +29,11 @@ for i = 1: length(insts)
     switch insts(i).type
         case 'line'
             
-            % Rotate the line around its center
-            insts(i).xyz = (R3(insts(i).rotAngle)*(insts(i).xyz - repmat(mean(insts(i).xyz), 2, 1))')' ...
-                + repmat(mean(insts(i).xyz), 2, 1);
+            % Rotate the line around its center 
+            if isfield(insts(i), 'rotAngle')
+                insts(i).xyz = (R3(insts(i).rotAngle)*(insts(i).xyz - repmat(mean(insts(i).xyz), 2, 1))')' ...
+                    + repmat(mean(insts(i).xyz), 2, 1);
+            end
             
             UV = findUVnDOF(beta, insts(i).xyz, meta.globals);
             UV = round(reshape(UV,[],2));
@@ -60,9 +62,11 @@ for i = 1: length(insts)
             xyzAll = [X(:) Y(:) repmat(insts(i).z,size(X(:)))];
             
             % Rotate the grid around its baricenter
-            meanxyzAll = [mean(x) mean(y) 0];
-            xyzAll = (R3(insts(i).rotAngle)*(xyzAll - repmat(meanxyzAll, length(X(:)), 1))')' ...
-                + repmat(meanxyzAll, length(X(:)), 1);
+            if isfield(insts(i), 'rotAngle')
+                meanxyzAll = [mean(x) mean(y) 0];
+                xyzAll = (R3(insts(i).rotAngle)*(xyzAll - repmat(meanxyzAll, length(X(:)), 1))')' ...
+                    + repmat(meanxyzAll, length(X(:)), 1);
+            end
             
             % test which will be onScreen (so shouldn't distort to nan)
             UV = findUVnDOF(beta, xyzAll, meta.globals);
