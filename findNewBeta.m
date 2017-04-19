@@ -1,4 +1,4 @@
-function [beta6dof,Ur,Vr,fail,ci,mse] = findNewBeta(Ig,beta, meta)
+function [beta6dof,Ur,Vr,fail] = findNewBeta(Ig,beta, meta)
 %   [betaNew6dof,Ur,Vr,failFlag] = findNewBeta(Ig,betaOld, meta)
 %
 %  computes an updated 6 dof beta for a new UAV video frame Ig, based on
@@ -7,10 +7,7 @@ function [beta6dof,Ur,Vr,fail,ci,mse] = findNewBeta(Ig,beta, meta)
 %  quickly on the way home) and failFlag is set to true.  Globals must
 %  include fields lcp, knowns and knownFlags.
 
-% Last update: KV WRL 04.2017
-% - MSE and confidence intervals (ci) are computed for nlinfit
-
-global globs currentAxes
+global globs
 globs = meta.globals;
 
 xyz = [meta.refPoints.xyz];
@@ -26,28 +23,18 @@ if fail
 end
 
 % find n-dof solution and expand to 6 dof final result
-options.Tolfun = 1e-12;
-options.TolX = 1e-12;
-[betaNew, R, ~, CovB, mse, ~] = nlinfit(xyz, [Ur(:); Vr(:)],'findUVnDOF',beta, options);
-ciNew = nlparci(betaNew, R, 'covar', CovB);
-
+betaNew = nlinfit(xyz,[Ur(:); Vr(:)],'findUVnDOF',beta);
 beta6dof(find(meta.globals.knownFlags)) = meta.globals.knowns;
 beta6dof(find(~meta.globals.knownFlags)) = betaNew;
 
-ci(:, find(globs.knownFlags)) = zeros(2,length(globs.knowns));
-ci(:, find(~globs.knownFlags)) = ciNew';
-
 % show results in case debug is needed
-colormap(gray)
-imagesc(Ig, 'Parent', currentAxes)
+figure(2); clf; colormap(gray)
+imagesc(Ig)
 hold on
-axis off
-plot(currentAxes, Ur,Vr,'r*')
+plot(Ur,Vr,'r*')
 uv = findUVnDOF(beta6dof, xyz, globs);
 uv = reshape(uv,[],2);
-plot(currentAxes, uv(:,1),uv(:,2),'ko')
-title(currentAxes, sprintf('MSE = %.2f pixels', mse));
-pause(0.01)
+plot(uv(:,1),uv(:,2),'ko')
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network
