@@ -33,6 +33,8 @@
 %   makeRadDist     - radial distance for distortion calcs
 %   makeTangDist    - tangential distance for distortion calcs
 %   lcpBeta2P       - build a P matrix from lcp and beta (angles)
+%   DJIReadInternalData - read the internal (non-EXIF) data from a
+%                     DJI snapshot image. 
 %
 % CILroutines that are called
 %   findXYZ         - find XYZ for any UV
