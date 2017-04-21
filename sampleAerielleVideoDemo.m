@@ -20,15 +20,16 @@ if ~exist(inputs.pncx)
     mkdir(inputs.pncx)
 end
 
-inds = strfind(inputs.instsFn, filesep);
-if isempty(inds)
-    eval(['insts = ' inputs.instsFn ';']);
+[dname, fname, ~]=fileparts(inputs.instsFn);
+if isempty(dname)
+    insts = eval(fname);
 else
-    p = pwd; eval(['cd ' inputs.instsFn(1:inds(end))])
-    eval(['insts = ' inputs.instsFn(inds(end)+1:end) ';']);
-    eval(['cd ' p]); clear p
+    p = pwd;
+    cd(dname);
+    insts = eval(fname);
+    cd(p);
+    clear p;
 end
-clear inds
 
 for i = 1: length(insts)        % save inst info as part of stacks
     stack(i).inst = insts(i);
