@@ -61,7 +61,7 @@ pid = PIXCreatePackage('AerielleDemo', instID);
 e = matlab2Epoch(now);
 
 % build the initial r
-r = PIXCreateR( pid, e, zmsl, 'none' );
+r = PIXCreateR( pid, e, zmsl, 'uav' );
 
 end
 

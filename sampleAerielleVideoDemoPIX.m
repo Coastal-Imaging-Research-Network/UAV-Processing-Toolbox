@@ -1,4 +1,4 @@
-% sample an example Aerielle movie.  Set this up as generic for other
+ei% sample an example Aerielle movie.  Set this up as generic for other
 % movies 
 
 % The important things are:
@@ -9,6 +9,9 @@
 
 clear
 close all
+
+addpath neededCILRoutines
+addpath ../PIXEL-Toolbox
 
 % required USER INPUT material.  Adapt to each collection
 demoInputFile;      % this file contains all of the required inputs.
@@ -43,6 +46,7 @@ I = imread([inputs.pnIn filesep clipFns(1).name filesep fns{1}(1).name]);
 [NV, NU, NC] = size(I);
 Ig = rgb2gray(I);           % for later sampling.
 meta.showFoundRefPoints = inputs.showFoundRefPoints; % easy way to pass.
+meta.showInputImages = inputs.showInputImages;       % ditto
 
 % Because nlinfit requires globals, we set up a variable globals (under 
 % metadata) that contains the lcp as well as the flags and values for
@@ -89,7 +93,6 @@ end
 % set up instruments and stacks - always do this.
 [geom, cam, ip] = lcpBeta2GeomCamIp( meta.globals.lcp, betas(1,:) );
 r = PIXParameterizeR( r, cam, geom, ip );
-
 r = PIXRebuildCollect( r );
 
 showInsts(I, r);
@@ -185,6 +188,12 @@ for clip = 1: NClips    % this is only relevant if you have multiple clips
         if isnan(betas(cnt,1))
             break;
         end
+
+        % must redo r for each new beta
+        [geom, cam, ip] = lcpBeta2GeomCamIp( meta.globals.lcp, betas(cnt,:) );
+        r = PIXParameterizeR( r, cam, geom, ip );
+        r = PIXRebuildCollect( r );
+
         data = sampleDJIFrame(r, Ig, betas(cnt,:), meta.globals);
             stack.data(cnt,:) = data';
         if inputs.doImageProducts
