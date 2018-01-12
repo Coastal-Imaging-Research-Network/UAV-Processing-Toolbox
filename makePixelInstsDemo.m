@@ -2,14 +2,17 @@ function r = makePixelInstsDemo( )
 
 % Make pixel instruments using pixel toolbox. duplicate of demoInstsFile.
 
+% start by forgetting everything you know
 PIXForget;
+% and set the station name
 PIXSetStation('aerielle');
 
+% sea level
 zmsl = 0;
 
 instID = [];
 
-% vbar insts
+% vbar insts, two y transects 
 y = [450 700];
 x = [125:25:225];
 
@@ -35,7 +38,7 @@ for ii=1:length(y)
     instID = [instID tid];
 end
 
-% cBathy
+% cBathy, 5 meter points
 dx = 5;
 dy = 5;
 x1 = 80;

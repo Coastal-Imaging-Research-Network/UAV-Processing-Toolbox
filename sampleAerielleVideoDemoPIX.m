@@ -1,4 +1,4 @@
-ei% sample an example Aerielle movie.  Set this up as generic for other
+% sample an example Aerielle movie.  Set this up as generic for other
 % movies 
 
 % The important things are:
@@ -6,6 +6,10 @@ ei% sample an example Aerielle movie.  Set this up as generic for other
 %       records for each UAV analysis.
 %   - a gcp file from a current survey
 %   - 
+%
+%  also important, you need the PIXel-Toolbox repo from github, which is 
+%  right next to the UAV toolbox you already have. 
+%
 
 clear
 close all
