@@ -27,7 +27,7 @@ end
 % runup
 xshore = 125;
 xdune  = 70;
-y = 60:50:650;
+y = 600:50:650;
 rot = 0;
 
 for ii=1:length(y)
