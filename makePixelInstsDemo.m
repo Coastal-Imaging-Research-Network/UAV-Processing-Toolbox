@@ -25,6 +25,12 @@ for ii=1:length(x)
 end
 
 % runup
+% note: normally for a runup line you want to keep a fixed X and Y.
+% This requires knowing the Z for each point on the line. For a fixed
+% station you may have done the survey transects or have other information
+% that allows you to know that. For a UAV operation, you probably do not,
+% Thus this is the "no Z" call.
+
 xshore = 125;
 xdune  = 70;
 y = 600:50:650;
