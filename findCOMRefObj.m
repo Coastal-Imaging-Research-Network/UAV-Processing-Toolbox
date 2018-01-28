@@ -35,9 +35,10 @@ Vr(i) = mean(V(good));
 % plot option
 if meta.showFoundRefPoints
     figure(1+10);clf; colormap(gray)
-    imagesc(URef,VRef,I2)
+    imagesc(URef,VRef,I2); axis image
     hold on
     plot(Ur(i),Vr(i),'r*')
+    drawnow
 end
 du = round(Ur(i) - uv(1));     % rough corrections to search guesses
 dv = round(Vr(i) - uv(2));
@@ -54,9 +55,10 @@ for i = 2: size(xyz,1)
     % plot option
     if meta.showFoundRefPoints
         figure(i+10);clf; colormap(gray)
-        imagesc(URef,VRef,I2)
+        imagesc(URef,VRef,I2); axis image
         hold on
         plot(Ur(i),Vr(i),'r*')
+        drawnow
     end
 end
 

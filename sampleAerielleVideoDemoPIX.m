@@ -100,6 +100,7 @@ r = PIXParameterizeR( r, cam, geom, ip );
 r = PIXRebuildCollect( r );
 
 showInsts(I, r);
+xlabel('u (pix)'); ylabel('v (pix)'); title('Demo Run Time Exposure')
 
 % if you don't see what you hoped to see, stop and re-create instruments.
 foo = input('Hit Ctrl-C if instruments not proper in Figure 3, otherwise <Enter> ');
@@ -110,8 +111,6 @@ nPix = size(r.cams(1).U, 1);
 stack.data = nan(nt, nPix, 1 );
 
 %%
-
-xlabel('x (m)'); ylabel('y (m)'); title('Demo Run Time Exposure')
 
 % now save metadata if it wasn't already there
 if  oldGeoms==0

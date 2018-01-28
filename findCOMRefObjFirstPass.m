@@ -18,7 +18,7 @@ cont = 1;
 while ~isempty(cont)
     figure(10); clf
     colormap(jet)
-    subplot(121); imagesc(u,v,i); colorbar
+    subplot(121); imagesc(u,v,i); axis image; colorbar
     thresh = input('enter a threshold to isolate the target - ');
 
     Ur = mean(U(i>thresh));
@@ -26,7 +26,8 @@ while ~isempty(cont)
     hold on; plot(Ur,Vr, 'w*')
     figure(10);subplot(122)
     imagesc(u,v,i>thresh)
-    hold on; plot(Ur,Vr,'w*')
+    hold on; plot(Ur,Vr,'w*'); 
+    axis image; 
     cont = input('Enter <cr> to accept, 0 to try again - ');
 end
 close(10)

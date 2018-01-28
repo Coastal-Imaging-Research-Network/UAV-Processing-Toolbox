@@ -30,7 +30,7 @@ beta6dof(find(~meta.globals.knownFlags)) = betaNew;
 if( meta.showInputImages == 1 )
     % show results in case debug is needed
     figure(2); clf; colormap(gray)
-    imagesc(Ig)
+    imagesc(Ig); axis image
     hold on
     plot(Ur,Vr,'r*')
     uv = findUVnDOF(beta6dof, xyz, globs);
