@@ -619,7 +619,7 @@ hEdit17a = uicontrol(...
     'Parent', hHBoxCameraRes,...
     'Tag','edit17a',...
     'Style', 'Edit',...
-    'String', '',...
+    'String', 'NU (eg. 3840)',...
     'Fontsize', 7,...
     'FontAngle', 'italic',...
     'Callback', {@editUpixels_CallBack});
@@ -633,7 +633,7 @@ hEdit17b = uicontrol(...
     'Parent', hHBoxCameraRes,...
     'Tag','edit17b',...
     'Style', 'Edit',...
-    'String', '',...
+    'String', 'NV (eg. 2160)',...
     'Fontsize', 7,...
     'FontAngle', 'italic',...
     'Callback', {@editVpixels_CallBack});
@@ -652,11 +652,11 @@ hTableCamInt = uitable(...
     'Tag', 'tableCamInt',...
     'Units', 'pixels',...
     'ColumnName', {'Value','Unit'},...
-    'RowName', {'fx','fy','c0U','c0V','d1','d2','t1','t2'},...
+    'RowName', {'fx','fy','c0U','c0V','d1','d2','d3','t1','t2'},...
     'ColumnEditable', [true false],...
     'Data', {'0' sprintf('    %s','pixels'); '0' sprintf('    %s','pixels'); ...
     '0' sprintf('    %s','pixels'); '0' sprintf('    %s','pixels'); ...
-    '0' sprintf('    %s','-'); '0' sprintf('    %s','-'); ...
+    '0' sprintf('    %s','-'); '0' sprintf('    %s','-'); '0' sprintf('    %s','-'); ...
     '0' sprintf('    %s','-'); '0' sprintf('    %s','-')});
 
 % Panel extrinsic camera parameters
@@ -846,42 +846,43 @@ loadInputs = questdlg('Would you like to use an input file?',...
         
 if strcmp(loadInputs, 'No')
     
-    % Default settings (in case no inputs are provided through the GUI)
-    handles.inputs.stationStr = 'MavicR';
-    handles.inputs.pnIn = fullfile(currDir, 'inputsNarrabeen', 'frames');
-    handles.inputs.pncx = fullfile(currDir, 'outputs');
-    handles.inputs.frameFn = 'narrabeenFrames';
-    handles.inputs.gcpFn = fullfile(currDir, 'inputsNarrabeen', 'gcpFileNarrabeen.mat');
-    handles.inputs.instsFn = fullfile(currDir, 'inputsNarrabeen', 'InstsFileNarrabeen.m');
-    handles.inputs.dateVect = datevec(now);
-    handles.inputs.GMT = '0';
-    handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
-    handles.inputs.dayFn = argusDay(matlab2Epoch(handles.inputs.dn0));
-    handles.inputs.ArgusCoordsys.X0 = 342505.207;   % argus local origin X
-    handles.inputs.ArgusCoordsys.Y0 = 6266731.449;  % argus local origin Y
-    handles.inputs.ArgusCoordsys.rot = 0;           % argus rotation angle in degrees
-    handles.inputs.ArgusCoordsys.EPSG = 28356;      % EPSG code of the local coordsys
-    handles.inputs.knownFlags = [0 0 0 0 0 0]; %[ xCam yCam zCam Azimuth Tilt Roll]
-    handles.inputs.rectxy = [-100 0.5 1000 -100 0.5 1000]; % rectification specs
-    handles.inputs.rectz = 0;            % rectification z-level
-
-    % the length of gcpList and value of nRefs must be >= length(beta0)/2
-    handles.inputs.gcpList = [1 2 3 4];   % use these gcps for init beta soln
-    handles.inputs.nRefs = 4;             % number of ref points for stabilization
-    bs = [0 0 0 0 0 0];                   % camera extrinsic parameters
-    handles.inputs.beta0 = bs(find(~handles.inputs.knownFlags));
-    handles.inputs.knowns = bs(find(handles.inputs.knownFlags));
-    handles.inputs.cameraName = 'MavicR';
-    handles.inputs.cameraRes = [3840 2160];
-    handles.inputs.FOV = 100;
-    handles.inputs.snapshotFn = fullfile('C:\Users\z5030440\Documents\UAV-Processing-Toolbox_2.0\demoGUI\inputsNarrabeen',...
-    'snapshotNarrabeen.jpg');
-
-    % Fixed settings
-    handles.inputs.doImageProducts = 1;    % usually 1.
-    handles.inputs.showFoundRefPoints = 0; % to display ref points as check
-    handles.inputs.dt = 0.5/(24*3600);     % delta_t (s) converted to datenums
-    handles.inputs.ArgusCoordsys.Z0 = 0;   % always mean sea level
+%     % Default settings (in case no inputs are provided through the GUI)
+%     handles.inputs.stationStr = 'MavicR';
+%     handles.inputs.pnIn = fullfile(currDir, 'inputsNarrabeen', 'frames');
+%     handles.inputs.pncx = fullfile(currDir, 'outputs');
+%     handles.inputs.frameFn = 'narrabeenFrames';
+%     handles.inputs.gcpFn = fullfile(currDir, 'inputsNarrabeen', 'gcpFileNarrabeen.mat');
+%     handles.inputs.instsFn = fullfile(currDir, 'inputsNarrabeen', 'InstsFileNarrabeen.m');
+%     handles.inputs.dateVect = datevec(now);
+%     handles.inputs.GMT = '0';
+%     handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
+%     handles.inputs.dayFn = argusDay(matlab2Epoch(handles.inputs.dn0));
+%     handles.inputs.ArgusCoordsys.X0 = 342505.207;   % argus local origin X
+%     handles.inputs.ArgusCoordsys.Y0 = 6266731.449;  % argus local origin Y
+%     handles.inputs.ArgusCoordsys.rot = 0;           % argus rotation angle in degrees
+%     handles.inputs.ArgusCoordsys.EPSG = 28356;      % EPSG code of the local coordsys
+%     handles.inputs.knownFlags = [0 0 0 0 0 0]; %[ xCam yCam zCam Azimuth Tilt Roll]
+%     handles.inputs.rectxy = [-100 0.5 1000 -100 0.5 1000]; % rectification specs
+%     handles.inputs.rectz = 0;            % rectification z-level
+% 
+%     % the length of gcpList and value of nRefs must be >= length(beta0)/2
+%     handles.inputs.gcpList = [1 2 3 4];   % use these gcps for init beta soln
+%     handles.inputs.nRefs = 4;             % number of ref points for stabilization
+%     bs = [0 0 0 0 0 0];                   % camera extrinsic parameters
+%     handles.inputs.beta0 = bs(find(~handles.inputs.knownFlags));
+%     handles.inputs.knowns = bs(find(handles.inputs.knownFlags));
+%     handles.inputs.cameraName = 'MavicR';
+%     handles.inputs.cameraRes = [3840 2160];
+%     
+%     handles.inputs.FOV = 100;
+%     handles.inputs.snapshotFn = fullfile('C:\Users\z5030440\Documents\UAV-Processing-Toolbox_2.0\demoGUI\inputsNarrabeen',...
+%     'snapshotNarrabeen.jpg');
+% 
+%     % Fixed settings
+%     handles.inputs.doImageProducts = 1;    % usually 1.
+%     handles.inputs.showFoundRefPoints = 0; % to display ref points as check
+%     handles.inputs.dt = 0.5/(24*3600);     % delta_t (s) converted to datenums
+%     handles.inputs.ArgusCoordsys.Z0 = 0;   % always mean sea level
     
 else
     [inputsFn, inputPn] = uigetfile('*.m','Select input file');
@@ -940,6 +941,7 @@ else
         sprintf(' %.2f',handles.camInt.c0V) ...
         sprintf(' %.2f',handles.camInt.d1) ...
         sprintf(' %.2f',handles.camInt.d2) ...
+        sprintf(' %.2f',handles.camInt.d3) ...
         sprintf(' %.2f',handles.camInt.t1) ...
         sprintf(' %.2f',handles.camInt.t2) ...
         };
@@ -1411,6 +1413,7 @@ function buttonCamInt_CallBack(hObject, eventdata)
         sprintf(' %.2f',handles.camInt.c0V) ...
         sprintf(' %.2f',handles.camInt.d1) ...
         sprintf(' %.2f',handles.camInt.d2) ...
+        sprintf(' %.2f',handles.camInt.d3) ...
         sprintf(' %.2f',handles.camInt.t1) ...
         sprintf(' %.2f',handles.camInt.t2) ...
         };
@@ -1502,9 +1505,9 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     handles.camInt.c0V = camInt_vec(4);
     handles.camInt.d1 = camInt_vec(5);
     handles.camInt.d2 = camInt_vec(6);
-    handles.camInt.d3 = 0;
-    handles.camInt.t1 = camInt_vec(7);
-    handles.camInt.t2 = camInt_vec(8);
+    handles.camInt.d3 = camInt_vec(7);
+    handles.camInt.t1 = camInt_vec(8);
+    handles.camInt.t2 = camInt_vec(9);
     
     handles.camInt.NU = handles.inputs.cameraRes(1);
     handles.camInt.NV = handles.inputs.cameraRes(2);
