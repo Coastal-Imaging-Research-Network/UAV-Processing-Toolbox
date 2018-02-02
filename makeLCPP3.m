@@ -81,7 +81,7 @@ switch whichStr
         end
     
     % Add Mavic camera lens calibration parameters
-    case 'Mavic'
+    case 'MavicR'
         % data from Caltech calibrations
         if ((NU == 4000) && (NV == 3000))     % 4 by 3 snap
             lcp.NU = NU;
@@ -115,8 +115,69 @@ switch whichStr
         else
             error('No lens calibration yet for this image format')
         end
+    % Mavic C
+    case 'MavicC'
+        % data from Caltech calibrations
+        if ((NU == 3840) && (NV == 2160))     % 4K video
+            lcp.NU = NU;
+            lcp.NV = NV;
+            lcp.c0U = 1782;
+            lcp.c0V = 1051;
+            lcp.fx = 3156;
+            lcp.fy = 3152;
+            lcp.d1 = 0.0151;  % radial distortion coefficients
+            lcp.d2 = -0.0137;
+            lcp.d3 = 0;
+            lcp.t1 = -0.0022;   % tangential distortion coefficients
+            lcp.t2 = -0.00971;
+            lcp = makeRadDist(lcp);
+            lcp = makeTangDist(lcp);    % add tangential dist template
+        else
+            error('No lens calibration yet for this image format')
+        end
         
-    otherwise
+    % Mitch's smartphone
+    case 'LG_G4'
+        if ((NU == 1920) && (NV == 1080))
+            lcp.NU = NU;
+            lcp.NV = NV;
+            lcp.c0U = 963.31;
+            lcp.c0V = 525.17;
+            lcp.fx = 1373.78;
+            lcp.fy = 1372.54;
+            lcp.d1 = 0;  % radial distortion
+            lcp.d2 = 0;
+            lcp.d3 = 0;
+            lcp.t1 = 0;% tangential terms
+            lcp.t2 = 0;
+            lcp = makeRadDist(lcp);
+            lcp = makeTangDist(lcp);    % add tangential dist template
+        else
+            error('No lens calibration yet for this image format')          
+        end
+        
+    % Mavic C with PolarPro filter
+    case 'MavicC_polar'
+        % data from Caltech calibrations
+        if ((NU == 3840) && (NV == 2160))     % 4K video
+            lcp.NU = NU;
+            lcp.NV = NV;
+            lcp.c0U = 1930;
+            lcp.c0V = 1131;
+            lcp.fx = 2936;
+            lcp.fy = 2947;
+            lcp.d1 = 0.0424;  % radial distortion coefficients
+            lcp.d2 = -0.0813;
+            lcp.d3 = 0;
+            lcp.t1 = 0.0014;   % tangential distortion coefficients
+            lcp.t2 = 0.0056;
+            lcp = makeRadDist(lcp);
+            lcp = makeTangDist(lcp);    % add tangential dist template
+        else
+            error('No lens calibration yet for this image format')
+        end
+
+otherwise
         error('Only Aerielle is currently implemented')
 end
             
