@@ -1,4 +1,4 @@
-function [Ur,Vr, thresh, zRef] = findCOMRefObjFirstPass(I, bBox, refType)
+function [Ur,Vr, thresh, zRef] = GUIfindCOMRefObjFirstPass(I, bBox, refType)
 %   [URef, VRef, thresh] = findCOMRefObjFirstPass(I,corners)
 %
 % given a gray shade image, I, find the intensities in a box defined by

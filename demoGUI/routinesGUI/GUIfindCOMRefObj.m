@@ -1,4 +1,4 @@
-function [Ur,Vr,fail] = findCOMRefObj(I,xyz,beta,dUV,thresh,meta)
+function [Ur,Vr,fail] = GUIfindCOMRefObj(I,xyz,beta,dUV,thresh,meta)
 %   [URef, VRef, fail] = findCOMRefObj(I,,xyz,beta,dUV,thresh,meta)
 %
 % given a gray shade image, I, find the intensities in a box defined by

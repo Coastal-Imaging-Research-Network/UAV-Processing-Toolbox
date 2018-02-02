@@ -1,4 +1,4 @@
-function [beta6dof,Ur,Vr,fail,ci,mse] = findNewBeta(Ig,beta, meta)
+function [beta6dof,Ur,Vr,fail,ci,mse] = GUIfindNewBeta(Ig,beta, meta)
 %   [betaNew6dof,Ur,Vr,failFlag] = findNewBeta(Ig,betaOld, meta)
 %
 %  computes an updated 6 dof beta for a new UAV video frame Ig, based on
@@ -18,7 +18,7 @@ xyz = reshape(xyz(:),3,[])';
 dUV = [meta.refPoints.dUV];
 dUV = reshape(dUV(:),2,[])';
 thresh = [meta.refPoints.thresh];
-[Ur,Vr, fail] = findCOMRefObj(Ig,xyz,beta,dUV,thresh,meta);
+[Ur,Vr, fail] = GUIfindCOMRefObj(Ig,xyz,beta,dUV,thresh,meta);
 if fail
     beta6dof = [];
     Ur = []; Vr = [];
@@ -46,7 +46,7 @@ plot(currentAxes, Ur,Vr,'r*')
 uv = findUVnDOF(beta6dof, xyz, globs);
 uv = reshape(uv,[],2);
 plot(currentAxes, uv(:,1),uv(:,2),'ko')
-title(currentAxes, sprintf('MSE = %.2f pixels', mse));
+title(currentAxes, sprintf('RMSE = %.2f pixels', sqrt(mse)));
 pause(0.01)
 
 %

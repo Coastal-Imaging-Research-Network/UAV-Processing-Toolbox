@@ -18,8 +18,8 @@ function [t GMT] = getTimestamp(snapshotFn)
 % Read exif from Snapshot (exiftool)
 exifdata = getexif(snapshotFn);
 
-% Extract date + time + GMT at which file was modified
-timeString = findField(exifdata, 'FileModifyDate');
+% Extract date + time from DateTimeOriginal
+timeString = findField(exifdata, 'DateTimeOriginal');
 [year remain] = strtok(timeString, ':');
 t(1) = str2double(year);
 [month remain] = strtok(remain, ':');
@@ -33,6 +33,20 @@ t(5) = str2double(minutes);
 [seconds remain] = strtok(remain, ':');
 t(6) = str2double(seconds(1:2));
 
+% Get GMT from FileModifyDate
+timeString = findField(exifdata, 'FileModifyDate');
+[year remain] = strtok(timeString, ':');
+temp(1) = str2double(year);
+[month remain] = strtok(remain, ':');
+temp(2) = str2double(month);
+[day remain] = strtok(remain, ':');
+temp(3) = str2double(day(1:2));
+[day hours] = strtok(day);
+temp(4) = str2double(hours);
+[minutes remain] = strtok(remain, ':');
+temp(5) = str2double(minutes);
+[seconds remain] = strtok(remain, ':');
+temp(6) = str2double(seconds(1:2));
 GMT = seconds(3:end);
 
 end

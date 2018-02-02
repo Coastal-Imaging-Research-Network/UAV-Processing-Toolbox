@@ -1,12 +1,23 @@
-function GUIforUAVtoolbox()
-
 % GUIforUAVtoolbox Graphical User Interface for the UAV Processing Toolbox
-
 % KV WRL 04.2017
 % Matlab version required: R2016b
 
+function GUIforUAVtoolbox()
+
+
 close all
 clc
+
+% Some graphical settings
+set(0,'DefaultTextFontsize',10, ...
+'DefaultTextFontname','Times New Roman', ...
+'DefaultTextFontWeight','bold', ...
+'DefaultAxesFontsize',10, ...
+'DefaultAxesFontname','Times New Roman', ...
+'DefaultLineLineWidth', 1.5,...
+'DefaultLineMarkerSize', 8,...
+'DefaultAxesLineWidth', 0.75)
+
 
 % Add path
 str = which('GUIforUAVtoolbox.m');
@@ -573,7 +584,7 @@ hPopupCam = uicontrol( ...
     'Parent', hHBoxCameraName,...
     'Style', 'popupmenu',...
     'Tag', 'popupCam',...
-    'String', {'Mavic', 'LG_G4', 'Aerielle'},...
+    'String', {'MavicR', 'MavicC', 'MavicC_polar', 'LG_G4', 'Aerielle'},...
     'Callback', {@popupCam_Callback});
 
 % 17. Camera Resolution
@@ -622,7 +633,7 @@ hTableCamInt = uitable(...
     'Tag', 'tableCamInt',...
     'Units', 'pixels',...
     'ColumnName', {'Value','Unit'},...
-    'RowName', {'fX','fY','ppX','ppY','r1','r2','t1','t2'},...
+    'RowName', {'fx','fy','c0U','c0V','d1','d2','t1','t2'},...
     'ColumnEditable', [true false],...
     'Data', {'0' sprintf('    %s','pixels'); '0' sprintf('    %s','pixels'); ...
     '0' sprintf('    %s','pixels'); '0' sprintf('    %s','pixels'); ...
@@ -764,7 +775,16 @@ hButtonFirstframe = uicontrol(...
     'String', 'First frame processing',...
     'Callback', {@buttonFirstframe_CallBack});
 
-% 27. Batch processing
+% 27. Pixel instruments
+hButtonPixelInsts = uicontrol(...
+    'Parent', hVBoxButtonsTab3,...
+    'Style', 'pushbutton',...
+    'Tag', 'pixelInsts',...
+    'String', 'Pixel Instruments',...
+    'Callback', {@buttonPixelInsts_CallBack},...
+    'Enable','off');
+
+% 28. Batch processing
 hButtonBatch = uicontrol(...
     'Parent', hVBoxButtonsTab3,...
     'Style', 'pushbutton',...
@@ -773,7 +793,7 @@ hButtonBatch = uicontrol(...
     'Callback', {@buttonBatch_CallBack},...
     'Enable', 'off');
 
-% 28. Argus-like products
+% 29. Argus-like products
 hButtonShowFigures1 = uicontrol(...
     'Parent', hVBoxButtonsTab3,...
     'Style', 'pushbutton',...
@@ -782,7 +802,7 @@ hButtonShowFigures1 = uicontrol(...
     'Callback', {@buttonShowFiguresArgus_CallBack},...
     'Enable', 'off');
 
-% 29. Geometries
+% 30. Geometries
 hButtonShowFigures2 = uicontrol(...
     'Parent', hVBoxButtonsTab3,...
     'Style', 'pushbutton',...
@@ -799,71 +819,159 @@ set(hVBoxTab3, 'Heights', [-4 -1]);
 str = which('GUIforUAVtoolbox.m');
 index = regexp(str, filesep);
 currDir = str(1:index(end));
-% Default settings (in case no inputs are provided through the GUI)
-handles.inputs.stationStr = 'Mavic';
-handles.inputs.pnIn = fullfile(currDir, 'inputsNarrabeen', 'frames');
-handles.inputs.pncx = fullfile(currDir, 'outputs');
-handles.inputs.frameFn = 'narrabeenFrames';
-handles.inputs.gcpFn = fullfile(currDir, 'inputsNarrabeen', 'gcpFileNarrabeen.mat');
-handles.inputs.instsFn = fullfile(currDir, 'inputsNarrabeen', 'InstsFileNarrabeen.m');
-handles.inputs.dateVect = datevec(now);
-handles.inputs.GMT = '0';
-handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
-handles.inputs.dayFn = argusDay(matlab2Epoch(handles.inputs.dn0));
-handles.inputs.ArgusCoordsys.X0 = 342505.207;   % argus local origin X
-handles.inputs.ArgusCoordsys.Y0 = 6266731.449;  % argus local origin Y
-handles.inputs.ArgusCoordsys.rot = 0;           % argus rotation angle in degrees
-handles.inputs.ArgusCoordsys.EPSG = 28356;      % EPSG code of the local coordsys
-handles.inputs.knownFlags = [0 0 0 0 0 0]; %[ xCam yCam zCam Azimuth Tilt Roll]
-handles.inputs.rectxy = [-100 0.5 1000 -100 0.5 1000]; % rectification specs
-handles.inputs.rectz = 0;            % rectification z-level
 
-% the length of gcpList and value of nRefs must be >= length(beta0)/2
-handles.inputs.gcpList = [1 2 3 4];   % use these gcps for init beta soln
-handles.inputs.nRefs = 4;             % number of ref points for stabilization
-bs = [0 0 0 0 0 0];                   % camera extrinsic parameters
-handles.inputs.beta0 = bs(find(~handles.inputs.knownFlags));
-handles.inputs.knowns = bs(find(handles.inputs.knownFlags));
-handles.inputs.cameraName = 'Mavic';
-handles.inputs.cameraRes = [3840 2160];
-handles.inputs.FOV = 100;
+% Load inputs file
+loadInputs = questdlg('Would you like to use an input file?',...
+            'Load inputs',...
+            'Yes', 'No', 'Yes');
+        
+if strcmp(loadInputs, 'No')
+    
+    % Default settings (in case no inputs are provided through the GUI)
+    handles.inputs.stationStr = 'MavicR';
+    handles.inputs.pnIn = fullfile(currDir, 'inputsNarrabeen', 'frames');
+    handles.inputs.pncx = fullfile(currDir, 'outputs');
+    handles.inputs.frameFn = 'narrabeenFrames';
+    handles.inputs.gcpFn = fullfile(currDir, 'inputsNarrabeen', 'gcpFileNarrabeen.mat');
+    handles.inputs.instsFn = fullfile(currDir, 'inputsNarrabeen', 'InstsFileNarrabeen.m');
+    handles.inputs.dateVect = datevec(now);
+    handles.inputs.GMT = '0';
+    handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
+    handles.inputs.dayFn = argusDay(matlab2Epoch(handles.inputs.dn0));
+    handles.inputs.ArgusCoordsys.X0 = 342505.207;   % argus local origin X
+    handles.inputs.ArgusCoordsys.Y0 = 6266731.449;  % argus local origin Y
+    handles.inputs.ArgusCoordsys.rot = 0;           % argus rotation angle in degrees
+    handles.inputs.ArgusCoordsys.EPSG = 28356;      % EPSG code of the local coordsys
+    handles.inputs.knownFlags = [0 0 0 0 0 0]; %[ xCam yCam zCam Azimuth Tilt Roll]
+    handles.inputs.rectxy = [-100 0.5 1000 -100 0.5 1000]; % rectification specs
+    handles.inputs.rectz = 0;            % rectification z-level
 
-% Fixed settings
-handles.inputs.doImageProducts = 1;    % usually 1.
-handles.inputs.showFoundRefPoints = 0; % to display ref points as check
-handles.inputs.dt = 0.5/(24*3600);     % delta_t (s) converted to datenums
-handles.inputs.ArgusCoordsys.Z0 = 0;   % always mean sea level
+    % the length of gcpList and value of nRefs must be >= length(beta0)/2
+    handles.inputs.gcpList = [1 2 3 4];   % use these gcps for init beta soln
+    handles.inputs.nRefs = 4;             % number of ref points for stabilization
+    bs = [0 0 0 0 0 0];                   % camera extrinsic parameters
+    handles.inputs.beta0 = bs(find(~handles.inputs.knownFlags));
+    handles.inputs.knowns = bs(find(handles.inputs.knownFlags));
+    handles.inputs.cameraName = 'MavicR';
+    handles.inputs.cameraRes = [3840 2160];
+    handles.inputs.FOV = 100;
+    handles.inputs.snapshotFn = fullfile('C:\Users\z5030440\Documents\UAV-Processing-Toolbox_2.0\demoGUI\inputsNarrabeen',...
+    'snapshotNarrabeen.jpg');
 
-% Display default settings
+    % Fixed settings
+    handles.inputs.doImageProducts = 1;    % usually 1.
+    handles.inputs.showFoundRefPoints = 0; % to display ref points as check
+    handles.inputs.dt = 0.5/(24*3600);     % delta_t (s) converted to datenums
+    handles.inputs.ArgusCoordsys.Z0 = 0;   % always mean sea level
+    
+else
+    [inputsFn, inputPn] = uigetfile('*.m','Select input file');
 
-% Panel Inputs
-hEdit1.String = handles.inputs.stationStr;
-hEdit2.String = handles.inputs.pnIn;
-hEdit3.String = handles.inputs.pncx;
-hEdit4.String = handles.inputs.frameFn;
-hEdit5.String = handles.inputs.gcpFn;
-hEdit6.String = num2str(handles.inputs.gcpList);
-hEdit7.String = num2str(handles.inputs.nRefs);
-hEdit8.String = handles.inputs.instsFn;
+    p = pwd;
+    eval(['cd ' inputPn]);
+    [inputsFn, remain] = strtok(inputsFn, '.');
+    eval(inputsFn);
+    eval(['cd ' p]);
+    clear p
 
-% Panel Settings
-hEdit9.String = num2str(handles.inputs.ArgusCoordsys.EPSG);
-hTextCoordsys.String = 'GDA94 / MGA zone 56'; 
-hEdit10.String = num2str(handles.inputs.ArgusCoordsys.X0);
-hEdit11.String = num2str(handles.inputs.ArgusCoordsys.Y0);
-hEdit12.String = num2str(handles.inputs.ArgusCoordsys.rot);
-hEdit13a.String = num2str(handles.inputs.rectxy(1)); 
-hEdit13b.String = num2str(handles.inputs.rectxy(3));
-hEdit13c.String = num2str(handles.inputs.rectxy(2));
-hEdit14a.String = num2str(handles.inputs.rectxy(4)); 
-hEdit14b.String = num2str(handles.inputs.rectxy(6));
-hEdit14c.String = num2str(handles.inputs.rectxy(5));
-hEdit15.String = num2str(handles.inputs.rectz);
+    handles.inputs = inputs;
+    
+    % Display inputs and settings
+    
+    % Panel Inputs
+    hEdit1.String = handles.inputs.stationStr;
+    hEdit2.String = handles.inputs.pnIn;
+    hEdit3.String = handles.inputs.pncx;
+    hEdit4.String = handles.inputs.frameFn;
+    hEdit5.String = handles.inputs.gcpFn;
+    hEdit6.String = num2str(handles.inputs.gcpList);
+    hEdit7.String = num2str(handles.inputs.nRefs);
+    hEdit8.String = handles.inputs.instsFn;
+    
+    % Panel Settings
+    hEdit9.String = num2str(handles.inputs.ArgusCoordsys.EPSG);
+    
+    % Display name of EPSG in text field
+    latlongepsg = 4326; % not important
+    xyepsg = handles.inputs.ArgusCoordsys.EPSG;
+    [E, N, logconv] = convertCoordinates(0, 0,'CS1.code', latlongepsg, 'CS2.code', xyepsg);
+    htextCoordsys = findobj('Tag', 'textCoordsys');
+    htextCoordsys.String = logconv.CS2.name;
+    
+    hEdit10.String = num2str(handles.inputs.ArgusCoordsys.X0);
+    hEdit11.String = num2str(handles.inputs.ArgusCoordsys.Y0);
+    hEdit12.String = num2str(handles.inputs.ArgusCoordsys.rot);
+    hEdit13a.String = num2str(handles.inputs.rectxy(1));
+    hEdit13b.String = num2str(handles.inputs.rectxy(3));
+    hEdit13c.String = num2str(handles.inputs.rectxy(2));
+    hEdit14a.String = num2str(handles.inputs.rectxy(4));
+    hEdit14b.String = num2str(handles.inputs.rectxy(6));
+    hEdit14c.String = num2str(handles.inputs.rectxy(5));
+    hEdit15.String = num2str(handles.inputs.rectz);
+    
+    % Panel intrinsic camera parameters (cameraName and cameraRes)
+    hEdit17a.String = num2str(handles.inputs.cameraRes(1));
+    hEdit17b.String = num2str(handles.inputs.cameraRes(2));
+    hPopupCam.Value = find(strcmp(hPopupCam.String,handles.inputs.cameraName));
+    % Fill table with intrinsic camera parameters
+    handles.camInt = makeLCPP3(handles.inputs.cameraName, handles.inputs.cameraRes(1), handles.inputs.cameraRes(2));
+    hTableCamInt.Data(:,1) = {sprintf(' %.2f',handles.camInt.fx) ...
+        sprintf(' %.2f',handles.camInt.fy) ...
+        sprintf(' %.2f',handles.camInt.c0U) ...
+        sprintf(' %.2f',handles.camInt.c0V) ...
+        sprintf(' %.2f',handles.camInt.d1) ...
+        sprintf(' %.2f',handles.camInt.d2) ...
+        sprintf(' %.2f',handles.camInt.t1) ...
+        sprintf(' %.2f',handles.camInt.t2) ...
+        };
+    % Camera extrinsic parameters
+    try
+        % Get camera extrinsic parameters
+        handles.camExt = getExtrinsicParam(handles.inputs.snapshotFn,...
+            handles.inputs.ArgusCoordsys.EPSG);
+        
+        % Get data/time variables
+        [handles.inputs.dateVect handles.inputs.GMT] = getTimestamp(handles.inputs.snapshotFn);
+        handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
+        handles.inputs.dayFn = argusDay(matlab2Epoch(handles.inputs.dn0));
+        
+        % Get FOV (field of view) for calculating horizon
+        handles.inputs.FOV = getFOV(handles.inputs.snapshotFn);
+        
+        % Fill table
+        htableCamExt.Data(:,1) = {sprintf(' %.2f',handles.camExt.camX) ...
+            sprintf(' %.2f',handles.camExt.camY) ...
+            sprintf(' %.2f',handles.camExt.camZ) ...
+            sprintf(' %.2f',handles.camExt.camYaw) ...
+            sprintf(' %.2f',handles.camExt.camPitch + 90) ...
+            sprintf(' %.2f',handles.camExt.camRoll)};
+        
+        % Known flags
+        htableCamExt.Data{1,3} = not(logical(handles.inputs.knownFlags(1)));
+        htableCamExt.Data{2,3} = not(logical(handles.inputs.knownFlags(2)));
+        htableCamExt.Data{3,3} = not(logical(handles.inputs.knownFlags(3)));
+        htableCamExt.Data{4,3} = not(logical(handles.inputs.knownFlags(4)));
+        htableCamExt.Data{5,3} = not(logical(handles.inputs.knownFlags(5)));
+        htableCamExt.Data{6,3} = not(logical(handles.inputs.knownFlags(6)));
 
-% Panel intrinsic camera parameters (cameraName and cameraRes)
-hEdit17a.String = num2str(handles.inputs.cameraRes(1));
-hEdit17b.String = num2str(handles.inputs.cameraRes(2));
+        % Display snapshot
+        I = imread(handles.inputs.snapshotFn);
+        imagesc(I, 'Parent', hAxesTab2);
+        hAxesTab2.DataAspectRatio = [1 1 1];
+        title(hAxesTab2, ['Snapshot from ' handles.inputs.stationStr ' ' ...
+            datestr(handles.inputs.dateVect) ' GMT ' ...
+            handles.inputs.GMT] , 'fontweight', 'normal', 'fontsize' , 11);
+        hAxesTab2.XTick = [];
+        hAxesTab2.YTick = [];
+        
+    catch
+        errordlg('Could not read snapshot!', 'Error')
+    end
 
+end
+
+handles.plotOn1 = 0;
+handles.plotOn2 = 0;
 
 handles.f = f;
 guidata(f,handles)
@@ -1361,12 +1469,12 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     % Lens calibration camera parameters (get table values)
     htableCamInt = findobj('tag', 'tableCamInt');
     camInt_vec = str2double(htableCamInt.Data(:,1));
-    handles.camInt.fX = camInt_vec(1);
-    handles.camInt.fY = camInt_vec(2);
-    handles.camInt.ppX = camInt_vec(3);
-    handles.camInt.ppY = camInt_vec(4);
-    handles.camInt.r1 = camInt_vec(5);
-    handles.camInt.r2 = camInt_vec(6);
+    handles.camInt.fx = camInt_vec(1);
+    handles.camInt.fy = camInt_vec(2);
+    handles.camInt.c0U = camInt_vec(3);
+    handles.camInt.c0V = camInt_vec(4);
+    handles.camInt.d1 = camInt_vec(5);
+    handles.camInt.d2 = camInt_vec(6);
     handles.camInt.t1 = camInt_vec(7);
     handles.camInt.t2 = camInt_vec(8);
     
@@ -1587,9 +1695,9 @@ function buttonFirstframe_CallBack(hObject, eventdata)
             if ~ismember(gcp(i).num, inputs.gcpList)
                 UV_checkpoint = findUVnDOF(betas(1,:), [gcp(i).x gcp(i).y gcp(i).z], meta.globals);
                 UV_checkpoint = round(reshape(UV_checkpoint,[],2));
-                plot(hAxesTab3, UV_checkpoint(:,1), UV_checkpoint(:,2), '+', 'Color', cmap(i,:), 'Markersize', 6);
+                plot(hAxesTab3, UV_checkpoint(:,1), UV_checkpoint(:,2), '+', 'Color', cmap(i,:), 'Markersize', 6, 'Tag', 'checkpoints');
                 text(UV_checkpoint(:,1) + 5, UV_checkpoint(:,2), gcp(i).name, ....
-                    'Color', cmap(i,:), 'Fontsize', 9, 'Parent', hAxesTab3);
+                    'Color', cmap(i,:), 'Fontsize', 9, 'Parent', hAxesTab3, 'Tag', 'checkpoints');
             end
         end
         
@@ -1616,7 +1724,7 @@ function buttonFirstframe_CallBack(hObject, eventdata)
             UV_horizon(UV_horizon(:,2) < 1 | ...
                 UV_horizon(:,2) > NV , : ) = [];
             plot(hAxesTab3, UV_horizon(:,1), UV_horizon(:,2),...
-                'm-.', 'linewidth', 0.5,...
+                'm-.', 'linewidth', 1,...
                 'Tag', 'hrz_line');
             
         catch
@@ -1625,7 +1733,7 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         end
         
         htextCommand1.String = 'Geometry computed. If the green dots are surrounded by red circles, geometry fit is ok.';
-        htextCommand2.String = [sprintf('MSE = %.2f pixels\n', mse) 'Press any key to continue'];
+        htextCommand2.String = [sprintf('RMSE = %.2f pixels\n', sqrt(mse)) 'Press any key to continue'];
         
         zoom out;
         zoom on;
@@ -1634,13 +1742,22 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         zoom out;
         
         % Print in output directory a screenshot of the GCPs used
-        print(handles.f, fullfile(inputs.pncx, 'selectedGCPs'), '-dpng')
-          
+        hFig = figure;
+        hAxes = copyobj(hAxesTab3,hFig); % Copy axes object into figure
+        set(gca,'units','normalized','position',[0 0 1 1])
+        axis on
+        hAxes.XTickLabel = [];
+        hAxes.YTickLabel = [];
+        hAxes.Title.String = 'GCPs used';
+        print(hFig, fullfile(inputs.pncx, 'GCPsUsed'), '-djpeg', '-r300')
+        delete(hFig);
+        
         % Stage 2 is the creation of reference points, each expressed in
         % a structure. User is aked to define a bounding box in which a bright or dark Center
         % of Mass (COM) will define the position of the reference point in all the frames.
      
         % Use gray-scale image
+        delete(findobj('Tag','checkpoints'));
         Ig = rgb2gray(I);
         imagesc(Ig, 'Parent', hAxesTab3);
         colormap(hAxesTab3, 'gray')
@@ -1733,54 +1850,45 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         htextCommand2.String = '';
     end
     
-    % Print in output directory a screenshot of the refPoints used
-    print(handles.f, fullfile(inputs.pncx, 'summaryMetadata'), '-dpng')
-    
+    % Print in output directory a screenshot of the GCPs and refPoints used
+    hFig = figure;
+    hAxes = copyobj(hAxesTab3,hFig); % Copy axes object into figure
+    set(gca,'units','normalized','position',[0 0 1 1])
+    axis on
+    hAxes.XTickLabel = [];
+    hAxes.YTickLabel = [];
+    hAxes.Title.String = 'GCPs and reference points used';
+    print(hFig, fullfile(inputs.pncx, 'GCPsandRefpoints'), '-djpeg', '-r300')
+    delete(hFig);
+
     % Save in handles structure
     handles.meta = meta;    
     handles.oldGeoms = oldGeoms;
     
-    % Enable bactch processing button
-    hBatchprocessing = findobj('Tag', 'batchprocessing');
-    hBatchprocessing.Enable = 'on';
+    % Enable bactch pixelInsts
+    hPixelInsts = findobj('Tag', 'pixelInsts');
+    hPixelInsts.Enable = 'on';
     
     guidata(hObject,handles)
 end
 
-function buttonBatch_CallBack(hObject, eventdata)
+function buttonPixelInsts_CallBack(hObject, eventdata)
     handles = guidata(hObject);
-    
-    % This button processes the remaining frames and saves the outputs
     
     htextCommand1 = findobj('Tag', 'textCommand1');
     htextCommand2 = findobj('Tag', 'textCommand2');
     hAxesTab3 = findobj('Tag', 'axesTab3');
     
     inputs = handles.inputs;
-    gcp = handles.gcp;
     meta = handles.meta;
     betas = meta.betas;
-    CI = meta.CI;
-    MSE = meta.MSE;
-    oldGeoms = handles.oldGeoms;
-    
-    global globs currentAxes
-    globs = meta.globals;
-    currentAxes = hAxesTab3;
-    
-    e0 = matlab2Epoch(inputs.dn0);
-    
-    % create clipFbns, a structure with all the images filenames
     clipFns = dir(fullfile(inputs.pnIn, [inputs.frameFn '*']));
-    NClips = length(clipFns);
-
-    % Create vector dn which contains the time-stamps in datanum
-    dn = datenum(inputs.dateVect) + ([1:NClips]-1)*inputs.dt;
-    % read the first frame
     I = imread(fullfile(inputs.pnIn, clipFns(1).name));
     [NV, NU, NC] = size(I);
-    Ig = rgb2gray(I);
-  
+
+    global globs
+    globs = meta.globals;
+    
     % Load InstsFile and show the pixel instruments on first frame
     p = pwd;
     idx_filesep = strfind(inputs.instsFn, filesep);
@@ -1805,25 +1913,76 @@ function buttonBatch_CallBack(hObject, eventdata)
         plot(hAxesTab3, UV_insts(:,1),UV_insts(:,2),'.')
     end
     
-    htextCommand1.String = 'Are the pixel instruments ok?';
-    htextCommand2.String = 'Press any key to continue';
+    htextCommand1.String = 'Are you happy with the pixel instruments?';
+    textX = sprintf(' If yes: press the Batch processing button. \n If not: modify the InstsFile and press the Pixel instruments button to replot.'); 
+    htextCommand2.String = textX;
+      
+    handles.insts = insts;
     
-    zoom out;
-    zoom on;
-    pause() % you can zoom with your mouse and when your image is okay, you press any key
-    zoom off;
-    zoom out;
+    % Enable bactch processing button
+    hBatchprocessing = findobj('Tag', 'batchprocessing');
+    hBatchprocessing.Enable = 'on';
     
+    guidata(hObject,handles)
+end
+
+function buttonBatch_CallBack(hObject, eventdata)
+    handles = guidata(hObject);
+    
+    % Disable bactch pixelInsts
+    hPixelInsts = findobj('Tag', 'pixelInsts');
+    hPixelInsts.Enable = 'off';
+    
+    % This button processes the remaining frames and saves the outputs
+    
+    htextCommand1 = findobj('Tag', 'textCommand1');
+    htextCommand2 = findobj('Tag', 'textCommand2');
+    hAxesTab3 = findobj('Tag', 'axesTab3');
+    
+    inputs = handles.inputs;
+    gcp = handles.gcp;
+    meta = handles.meta;
+    insts = handles.insts;
+    betas = meta.betas;
+    CI = meta.CI;
+    MSE = meta.MSE;
+    oldGeoms = handles.oldGeoms;
+    
+    global globs currentAxes
+    globs = meta.globals;
+    currentAxes = hAxesTab3;
+    
+    % Print in output directory a screenshot of the pixel instruments used
+    hFig = figure;
+    hAxes = copyobj(hAxesTab3,hFig); % Copy axes object into figure
+    set(gca,'units','normalized','position',[0 0 1 1])
+    axis on
+    hAxes.XTickLabel = [];
+    hAxes.YTickLabel = [];
+    hAxes.Title.String = 'Pixel instruments used';
+    print(hFig, fullfile(inputs.pncx, 'PixelInstruments'), '-djpeg', '-r300')
+    delete(hFig);
+    
+    e0 = matlab2Epoch(inputs.dn0);
+    
+    % create clipFbns, a structure with all the images filenames
+    clipFns = dir(fullfile(inputs.pnIn, [inputs.frameFn '*']));
+    NClips = length(clipFns);
+
+    % Create vector dn which contains the time-stamps in datanum
+    dn = datenum(inputs.dateVect) + ([1:NClips]-1)*inputs.dt;
+    % read the first frame
+    I = imread(fullfile(inputs.pnIn, clipFns(1).name));
+    [NV, NU, NC] = size(I);
+    Ig = rgb2gray(I);
+      
     htextCommand1.String = 'Batch processing started...';
     htextCommand2.String = '';
     
     % Disable bactch processing button
     hBatchprocessing = findobj('Tag', 'batchprocessing');
     hBatchprocessing.Enable = 'off';
-    
-    % Print in output directory a screenshot of the GCPs used
-    print(handles.f, fullfile(inputs.pncx, 'pixelInstruments'), '-dpng')
-    
+     
     % Save the info in the stack structure.
     for i = 1: length(insts)
         stack(i).inst = insts(i);
@@ -1940,12 +2099,12 @@ function buttonBatch_CallBack(hObject, eventdata)
     save(fullfile(inputs.pncx, metaFn),'meta')
     
     % Save outputs
-    folderPNG = fullfile(inputs.pncx, 'png');
+    folderImages = fullfile(inputs.pncx, 'images');
     folderMat = fullfile(inputs.pncx, 'mat');
-    folderGeoms = fullfile(folderPNG, 'geoms');
+    folderGeoms = fullfile(folderImages, 'geometries');
     % create directories if they don't exist
-    if ~exist(folderPNG)
-        mkdir(folderPNG)
+    if ~exist(folderImages)
+        mkdir(folderImages)
     end
     if ~exist(folderMat)
         mkdir(folderMat)
@@ -1984,11 +2143,11 @@ function buttonBatch_CallBack(hObject, eventdata)
             
             
             info.type = insts(i).shortName;
-            info.format = 'png';
+            info.format = 'jpg';
             fn = argusFilename(info);
             
             set(gcf, 'Position', [0 0 1 1])
-            print(gcf, fullfile(folderPNG, fn), '-dpng')
+            print(gcf, fullfile(folderImages, fn), '-djpeg', '-r300')
             set(gcf, 'Visible', 'off')
             info.format = 'mat';
             
@@ -2003,11 +2162,11 @@ function buttonBatch_CallBack(hObject, eventdata)
             title(stack.inst.shortName)
 
             info.type = insts(i).shortName;
-            info.format = 'png';
+            info.format = 'jpg';
             fn = argusFilename(info);
             
             set(gcf, 'Position', [0 0 1 1])
-            print(gcf, fullfile(folderPNG, fn), '-dpng')
+            print(gcf, fullfile(folderImages, fn), '-djpeg', '-r300')
             set(gcf, 'Visible', 'off')
             info.format = 'mat';
             
@@ -2023,10 +2182,10 @@ function buttonBatch_CallBack(hObject, eventdata)
     title(['Snap for ' datestr(finalImages.dn)])
     axis image; grid on
     info.type = 'snap';
-    info.format = 'png';
+    info.format = 'jpg';
     fn = argusFilename(info);
     set(gcf, 'Position', [0 0 1 1]);
-    print(gcf, fullfile(folderPNG, fn), '-dpng')
+    print(gcf, fullfile(folderImages, fn), '-djpeg', '-r300')
     set(gcf, 'Visible', 'off')
     
     % Save timex
@@ -2035,10 +2194,10 @@ function buttonBatch_CallBack(hObject, eventdata)
     xlabel('x (m)'); ylabel('y (m)'); title(['Timex for ' datestr(finalImages.dn)])
     axis xy;axis image; grid on
     info.type = 'timex';
-    info.format = 'png';
+    info.format = 'jpg';
     fn = argusFilename(info);
     set(gcf, 'Position', [0 0 1 1]);
-    print(gcf, fullfile(folderPNG, fn), '-dpng')
+    print(gcf, fullfile(folderImages, fn), '-djpeg', '-r300')
     set(gcf, 'Visible', 'off')
     
     % Save bright
@@ -2047,10 +2206,10 @@ function buttonBatch_CallBack(hObject, eventdata)
     xlabel('x (m)'); ylabel('y (m)'); title(['Max for ' datestr(finalImages.dn)])
     axis xy;axis image; grid on
     info.type = 'max';
-    info.format = 'png';
+    info.format = 'jpg';
     fn = argusFilename(info);
     set(gcf, 'Position', [0 0 1 1]);
-    print(gcf, fullfile(folderPNG, fn), '-dpng')
+    print(gcf, fullfile(folderImages, fn), '-djpeg', '-r300')
     set(gcf, 'Visible', 'off')
     
     % Save dark
@@ -2059,10 +2218,10 @@ function buttonBatch_CallBack(hObject, eventdata)
     xlabel('x (m)'); ylabel('y (m)'); title(['Min for ' datestr(finalImages.dn)])
     axis xy;axis image; grid on
     info.type = 'min';
-    info.format = 'png';
+    info.format = 'jpg';
     fn = argusFilename(info);
     set(gcf, 'Position', [0 0 1 1]);
-    print(gcf, fullfile(folderPNG, fn), '-dpng')
+    print(gcf, fullfile(folderImages, fn), '-djpeg', '-r300')
     set(gcf, 'Visible', 'off')
     
     % Plot external camera parameters (betas) with confidence intervals
@@ -2083,7 +2242,13 @@ function buttonBatch_CallBack(hObject, eventdata)
     baricenter = mean(betas(:,[1 2]));
     r_2sigma = 2*sqrt( std(betas(:,1))^2 + std(betas(:,2))^2);
     
-    figure('Name', 'UAV Position', 'Tag', 'Position', 'Units', 'normalized'); clf
+    figure('Name', 'UAV Position', 'Tag', 'Position'); clf
+    width = 12;
+    height = 10;
+    margHor = [1.5 1.5];
+    margVer = [1.5 1.5];
+    gaps = [0 0];
+    h = geomplot(1,1,1,1,width,height,margHor,margVer,gaps);
     hold on
     axis equal
     plot(betas(2:end-1,1) - baricenter(1), betas(2:end-1,2) - baricenter(2), 'k.', 'markerfacecolor', 'k', 'markersize', 8, 'DisplayName', 'geoms')
@@ -2097,156 +2262,145 @@ function buttonBatch_CallBack(hObject, eventdata)
     legend('show')
     % Save position
     info.type = 'UAV_position';
-    info.format = 'png';
+    info.format = 'jpg';
     fn = argusFilename(info);
     set(gcf,'position',[0 0 1 1])
-    print(gcf, fullfile(folderGeoms, fn), '-dpng')
+    print(gcf, fullfile(folderGeoms, fn), '-djpeg', '-r300')
     set(gcf, 'Visible', 'off')
     
-    % Plot coordinates
-    figure('Name', 'UAV Coordinates', 'Tag', 'Coordinates', 'Units', 'normalized'); clf
-    subplot(311)
+    % Plot 4 camera extrinsic parameters
+    figure('Name', 'UAV Coordinates', 'Tag', 'Coordinates'); clf
+
+    width = 16;
+    height = 3;
+    margHor = [1.5 1.5];
+    margVer = [1.5 1.5];
+    gaps = [0 1];
+    
+    % Plot Z
+    h1 = geomplot(4,1,1,1,width,height,margHor,margVer,gaps);
     hold on
-    plot(dn,betas(:,1), 'b-', 'linewidth', 1.5)
+    box on
+    axis tight
+    plot(dn,betas(:,3), 'linestyle','-', 'linewidth', 1, 'color', [0 0 0])
     X_plot  = [dn(2:end), fliplr(dn(2:end))];
-    Y_plot  = [ciX(1,2:end), fliplr(ciX(2,2:end))];
-    fill(X_plot, Y_plot , 1,....
-        'facecolor','blue', ...
-        'edgecolor','none', ...
-        'facealpha', 0.3);
-    axis tight
-    grid on
-    ylabel('X [m]','FontSize',10)
-    datetick('x',13,'keepticks')
-    set(gca,'FontSize',10)
-    title(['Eastings, range = ' sprintf( '%.2f', range(betas(:,1)) ) ...
-        'm, \sigma = ' sprintf( '%.2f', std(betas(:,1)) ) ' m' ])
-    subplot(312)
-    hold on
-    plot(dn,betas(:,2), 'b-', 'linewidth', 1.5)
-    Y_plot  = [ciY(1,2:end), fliplr(ciY(2,2:end))];
-    fill(X_plot, Y_plot , 1,....
-        'facecolor','blue', ...
-        'edgecolor','none', ...
-        'facealpha', 0.3);
-    axis tight
-    grid on
-    ylabel('Y [m]','FontSize',10)
-    datetick('x',13,'keepticks')
-    set(gca,'FontSize',10)
-    title(['Northings, range = ' sprintf( '%.2f', range(betas(:,2)) ) ...
-        'm, \sigma = ' sprintf( '%.2f', std(betas(:,2)) ) ' m' ])
-    subplot(313)
-    hold on
-    plot(dn,betas(:,3), 'b-', 'linewidth', 1.5)
     Y_plot  = [ciZ(1,2:end), fliplr(ciZ(2,2:end))];
     fill(X_plot, Y_plot , 1,....
-        'facecolor','blue', ...
+        'facecolor',[0.6 0.6 0.6], ...
         'edgecolor','none', ...
-        'facealpha', 0.3);
+        'facealpha', 0.5);
     axis tight
     grid on
-    ylabel('Z [m]','FontSize',10)
+    ylabel('Z [m]')
     datetick('x',13,'keepticks')
-    set(gca,'FontSize',10)
-    title(['Elevations, range = ' sprintf( '%.2f', range(betas(:,3)) ) ...
-        'm, \sigma = ' sprintf( '%.2f', std(betas(:,3)) ) ' m' ])
+    t1 = sprintf('Z coordinate (range = %.2f m)', range(betas(:,3)));
+    title(t1)
     
-    samexaxis('join','join','YlabelDistance',0.7,'YTickAntiClash',1)
+    % Plot Azimuth
+    h2 = geomplot(4,1,2,1,width,height,margHor,margVer,gaps);
+    hold on
+    box on
+    axis tight
+    plot(dn,betas(:,4)*180/pi, 'linestyle','-', 'linewidth', 1, 'color', [0 0 0])
+    X_plot  = [dn(2:end), fliplr(dn(2:end))];
+    Y_plot  = [ciAzimuth(1,2:end), fliplr(ciAzimuth(2,2:end))];
+    fill(X_plot, Y_plot , 1,....
+        'facecolor',[0.6 0.6 0.6], ...
+        'edgecolor','none', ...
+        'facealpha', 0.5);
+    axis tight
+    grid on
+    ylabel('Azimuth [°]','FontSize',10)
+    datetick('x',13,'keepticks')
+    t2 = sprintf('Azimuth (range = %.2f °)', range(betas(:,4)*180/pi));
+    title(t2)
+    
+    % Plot tilt
+    h3 = geomplot(4,1,3,1,width,height,margHor,margVer,gaps);
+    hold on
+    box on
+    axis tight
+    plot(dn,betas(:,5)*180/pi, 'linestyle','-', 'linewidth', 1, 'color', [0 0 0])
+    X_plot  = [dn(2:end), fliplr(dn(2:end))];
+    Y_plot  = [ciTilt(1,2:end), fliplr(ciTilt(2,2:end))];
+    fill(X_plot, Y_plot , 1,....
+        'facecolor',[0.6 0.6 0.6], ...
+        'edgecolor','none', ...
+        'facealpha', 0.5);
+    axis tight
+    grid on
+    ylabel('Tilt [°]')
+    datetick('x',13,'keepticks')
+    t3 = sprintf('Tilt (range = %.2f °)', range(betas(:,5)*180/pi));
+    title(t3)
+    
+    % Plot roll
+    h4 = geomplot(4,1,4,1,width,height,margHor,margVer,gaps);
+    hold on
+    box on
+    axis tight
+    plot(dn,betas(:,6)*180/pi, 'linestyle','-', 'linewidth', 1, 'color', [0 0 0])
+    X_plot  = [dn(2:end), fliplr(dn(2:end))];
+    Y_plot  = [ciRoll(1,2:end), fliplr(ciRoll(2,2:end))];
+    fill(X_plot, Y_plot , 1,....
+        'facecolor',[0.6 0.6 0.6], ...
+        'edgecolor','none', ...
+        'facealpha', 0.5);
+    axis tight
+    grid on
+    ylabel('Roll [°]')
+    datetick('x',13,'keepticks')
+    t4 = sprintf('Roll (range = %.2f °)', range(betas(:,6)*180/pi));
+    title(t4)
+    xlabel('Time')
     
     % Save coordinates
     info.type = 'UAV_coordinates';
-    info.format = 'png';
+    info.format = 'jpg';
     fn = argusFilename(info);
     set(gcf, 'Position' ,[0 0 1 1])
-    print(gcf, fullfile(folderGeoms, fn), '-dpng')
+    print(gcf, fullfile(folderGeoms, fn), '-djpeg', '-r300')
     set(gcf, 'Visible', 'off')
     
-    % Plot attitude    
-    figure('Name', 'UAV Attitude', 'Tag', 'Attitude', 'Units', 'normalized'); clf
-        subplot(311)
-    hold on
-    plot(dn,attitude(:,1), 'b-', 'linewidth', 1)
-    Y_plot  = [ciAzimuth(1,2:end), fliplr(ciAzimuth(2,2:end))];
-    fill(X_plot, Y_plot , 1,....
-        'facecolor','blue', ...
-        'edgecolor','none', ...
-        'facealpha', 0.3);
-    axis tight
-    grid on
-    ylabel('Azimuth [deg]','FontSize',10)
-    datetick('x',13,'keepticks')
-    set(gca,'FontSize',10)
-    title(['Azimuth, range = ' sprintf( '%.2f', range(attitude(:,1)) ) ...
-        ' °, \sigma = ' sprintf( '%.2f', std(attitude(:,1)) ) ' °' ])
-    subplot(312)
-    hold on
-    plot(dn,attitude(:,2), 'b-', 'linewidth', 1)
-    Y_plot  = [ciTilt(1,2:end), fliplr(ciTilt(2,2:end))];
-    fill(X_plot, Y_plot , 1,....
-        'facecolor','blue', ...
-        'edgecolor','none', ...
-        'facealpha', 0.3);
-    axis tight
-    grid on
-    ylabel('Tilt [deg]','FontSize',10)
-    datetick('x',13,'keepticks')
-    set(gca,'FontSize',10)
-    title(['Tilt, range = ' sprintf( '%.2f', range(attitude(:,2)) ) ...
-        ' °, \sigma = ' sprintf( '%.2f', std(attitude(:,2)) ) ' °' ])
-    subplot(313)
-    hold on
-    plot(dn,attitude(:,3), 'b-', 'linewidth', 1.5)
-    Y_plot  = [ciRoll(1,2:end), fliplr(ciRoll(2,2:end))];
-    fill(X_plot, Y_plot , 1,....
-        'facecolor','blue', ...
-        'edgecolor','none', ...
-        'facealpha', 0.3);
-    axis tight
-    grid on
-    ylabel('Roll [deg]','FontSize',10)
-    datetick('x',13,'keepticks')
-    set(gca,'FontSize',10)
-    title(['Roll, range = ' sprintf( '%.2f', range(attitude(:,3)) ) ...
-        ' °, \sigma = ' sprintf( '%.2f', std(attitude(:,3)) ) ' °' ])
+    % Plot RMSE
+    figure('Name', 'MSE', 'Tag', 'mse'); clf
     
-    samexaxis('join','join','YlabelDistance',0.7,'YTickAntiClash',1)
+    width = 16;
+    height = 4;
+    margHor = [1.2 1];
+    margVer = [0.5 1.1];
+    gaps = [0 1.8];
     
-    % Save attitude
-    info.type = 'UAV_attitude';
-    info.format = 'png';
-    fn = argusFilename(info);
-    set(gcf, 'Position', [0 0 1 1])
-    print(gcf, fullfile(folderGeoms, fn), '-dpng')
-    set(gcf, 'Visible', 'off')
-    
-    % MSE plot
-    figure('Name', 'MSE', 'Tag', 'mse', 'Units', 'normalized'); clf
-    subplot(212)
+    h10 = geomplot(2,1,1,1,width,height,margHor,margVer,gaps);
     hold on
     axis tight
-    histogram(MSE)
-    xlabel('MSE [pixels]','FontSize',10)
-    ylabel('Frequency','FontSize',10)
-    set(gca,'FontSize',10)
-    subplot(211)
-    hold on
-    axis tight
-    plot(dn,MSE, 'linewidth', 1)
-    xlabel('Time','FontSize',10)
-    ylabel('MSE [pixels]','FontSize',10)
+    box on
+    bar(dn,sqrt(MSE),1,'linewidth',0.1,'edgecolor','none','facecolor',[0.4 0.4 0.4])
+    xlabel('Time')
+    ylabel('RMSE [pixels]')
     datetick('x',13,'keepticks')
-    title('MSE of the geometry solutions')
-    set(gca,'FontSize',10, 'Xgrid', 'on')
+    set(gca,'Ygrid','on')
+    title('RMSE of residuals for each frame')
+    
+    h11 = geomplot(2,1,2,1,width,height,margHor,margVer,gaps);
+    hHist = histogram(sqrt(MSE));
+    hHist.FaceColor = [.4 .4 .4];
+    hHist.LineWidth = 0.8;
+    hHist.BinWidth = 0.1;
+    title('Frequency distribution')
+    ylabel('Counts')
+    xlabel('RMSE [pixels]')
+    grid on
+    
     % Save MSE
-    info.type = 'MSE';
-    info.format = 'png';
+    info.type = 'RMSE';
+    info.format = 'jpg';
     fn = argusFilename(info);
     set(gcf, 'Position', [0 0 1 1])
-    print(gcf, fullfile(folderGeoms, fn), '-dpng')
+    print(gcf, fullfile(folderGeoms, fn), '-djpeg', '-r300')
     set(gcf, 'Visible', 'off')
     
-    htextCommand1.String = ['Outputs (.mat, geotiffs and pngs) saved in ' inputs.pncx ' .'];
+    htextCommand1.String = ['Outputs saved in ' inputs.pncx ' .'];
     htextCommand2.String = 'Done.';
     
     % Disable bactch processing button
@@ -2264,20 +2418,26 @@ end
 
 function buttonShowFiguresArgus_CallBack(hObject, eventdata)
     handles = guidata(hObject);
-    
+      
     % Shows the figures containing Argus-like products
-    
-    set(findobj('Tag', 'Snap'), 'Visible', 'on');
-    pause(1)
-    set(findobj('Tag', 'Timex'), 'Visible', 'on');
-    pause(1)
-    set(findobj('Tag', 'Max'), 'Visible', 'on');
-    pause(1)
-    set(findobj('Tag', 'Min'), 'Visible', 'on');
-    
-    for i = 1:length(handles.insts)
-       set(findobj('Tag', handles.insts(i).shortName), 'Visible', 'on') 
-       pause(1)
+    if handles.plotOn1 == 0
+        set(findobj('Tag', 'Snap'), 'Visible', 'on');
+        set(findobj('Tag', 'Timex'), 'Visible', 'on');
+        set(findobj('Tag', 'Max'), 'Visible', 'on');
+        set(findobj('Tag', 'Min'), 'Visible', 'on');
+        for i = 1:length(handles.insts)
+            set(findobj('Tag', handles.insts(i).shortName), 'Visible', 'on')
+        end
+        handles.plotOn1 = 1;
+    else
+        set(findobj('Tag', 'Snap'), 'Visible', 'off');
+        set(findobj('Tag', 'Timex'), 'Visible', 'off');
+        set(findobj('Tag', 'Max'), 'Visible', 'off');
+        set(findobj('Tag', 'Min'), 'Visible', 'off');
+        for i = 1:length(handles.insts)
+            set(findobj('Tag', handles.insts(i).shortName), 'Visible', 'off')
+        end
+        handles.plotOn1 = 0;
     end
     
     guidata(hObject,handles)
@@ -2287,14 +2447,17 @@ function buttonShowFiguresGeom_CallBack(hObject, eventdata)
     handles = guidata(hObject);
     
     % Shows the figures containing the geometries
-    
-    set(findobj('Tag', 'Position'), 'Visible', 'on');
-    pause(1)
-    set(findobj('Tag', 'Coordinates'), 'Visible', 'on');
-    pause(1)
-    set(findobj('Tag', 'Attitude'), 'Visible', 'on');
-    pause(1)
-    set(findobj('Tag', 'mse'), 'Visible', 'on');
+    if handles.plotOn2 == 0
+        set(findobj('Tag', 'Position'), 'Visible', 'on', 'Units','Normalized','Position',[0.1 0.1 0.7 0.7]);
+        set(findobj('Tag', 'Coordinates'), 'Visible', 'on', 'Units','Normalized', 'Position',[0.1 0.1 0.7 0.7]);
+        set(findobj('Tag', 'mse'), 'Visible', 'on', 'Units','Normalized','Position',[0.1 0.1 0.7 0.7]);
+        handles.plotOn2 = 1;
+    else
+        set(findobj('Tag', 'Position'), 'Visible', 'off', 'Units','Normalized','Position',[0.1 0.1 0.7 0.7]);
+        set(findobj('Tag', 'Coordinates'), 'Visible', 'off', 'Units','Normalized', 'Position',[0.1 0.1 0.7 0.7]);
+        set(findobj('Tag', 'mse'), 'Visible', 'off', 'Units','Normalized','Position',[0.1 0.1 0.7 0.7]);
+        handles.plotOn2 = 0;
+    end
     
     guidata(hObject,handles)
 end
