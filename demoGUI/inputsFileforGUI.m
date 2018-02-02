@@ -7,8 +7,8 @@ inputs.stationStr = 'MavicC';
 inputs.pnIn = fullfile(mainPath,'inputs','frames');
 inputs.pncx = fullfile(mainPath,'outputs');
 inputs.frameFn = 'framesNarra280417';
-inputs.gcpFn = fullfile(mainPath,'inputs','gcpFileNarra280417');
-inputs.instsFn = fullfile(mainPath,'inputs','InstsFileNarra280417');
+inputs.gcpFn = fullfile(mainPath,'inputs','gcpFileNarra280417.mat');
+inputs.instsFn = fullfile(mainPath,'inputs','InstsFileNarra280417.m');
 inputs.snapshotFn = fullfile(mainPath,'inputs','snapshotNarra280417.jpg');
 
 %% 2. Date
@@ -29,9 +29,9 @@ inputs.ArgusCoordsys.EPSG = 28356;     % EPSG code of the local coordsys
 % Extrinsic camera parameters 
 inputs.knownFlags = [0 0 0 0 0 0]; % 1 for constrained, 0 for unconstrained
                                    % order is [ xCam yCam zCam Azimuth Tilt Roll]
-bs = [0 0 0 0 0 0 ];                        
-inputs.beta0 = bs(~inputs.knownFlags);
-inputs.knowns = bs(inputs.knownFlags);
+bs = [0 0 0 0 0 0];                        
+inputs.beta0 = bs(find(~inputs.knownFlags));
+inputs.knowns = bs(find(inputs.knownFlags));
 
 % Intrinsic camera parameters
 inputs.cameraName = 'MavicC';
