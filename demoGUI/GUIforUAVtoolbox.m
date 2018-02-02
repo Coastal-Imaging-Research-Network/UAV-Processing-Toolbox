@@ -580,11 +580,29 @@ hText  = uicontrol(...
     'Fontsize', 8,...
     'Fontweight', 'bold',...
     'HorizontalAlignment', 'left');
+% Populate popup menu from the cameras present in makeLCPP3.m by looking
+% which word is after 'case'
+cameraFile = which('makeLCPP3.m');
+fid = fopen(cameraFile);
+tline = fgetl(fid);
+counter = 1;
+while ischar(tline)
+    if contains(tline,'case')
+        [temp1 temp2]= strtok(tline,' ');
+        temp2 = erase(temp2,'''');
+        temp2 = erase(temp2,' ');
+        cameraNames{counter} = temp2;
+        counter = counter + 1;
+    end
+   tline = fgetl(fid);
+end
+fclose(fid);
+cameraNames{counter} = 'custom';
 hPopupCam = uicontrol( ...
     'Parent', hHBoxCameraName,...
     'Style', 'popupmenu',...
     'Tag', 'popupCam',...
-    'String', {'MavicR', 'MavicC', 'MavicC_polar', 'LG_G4', 'Aerielle'},...
+    'String', cameraNames,...
     'Callback', {@popupCam_Callback});
 
 % 17. Camera Resolution
@@ -623,6 +641,7 @@ hEdit17b = uicontrol(...
 % 18. Button Get
 hButtonCamInt = uicontrol(...
     'Parent', hVBoxCamInt,...
+    'tag', 'buttonGet',...
     'Style', 'pushbutton',...
     'String', 'Get',...
     'Callback', {@buttonCamInt_CallBack});
@@ -1336,6 +1355,14 @@ function popupCam_Callback(hObject, eventdata)
     string = hpopup.String;
     handles.inputs.cameraName = string{val};
     
+    % disable get if cameraName is 'custom'
+    if strcmp(string{val},'custom')
+        hButtonGet = findobj('tag','buttonGet');
+        hButtonGet.Enable = 'off';
+    else
+        hButtonGet.Enable = 'on';
+    end
+    
     guidata(hObject,handles)
 end
 % 17. Callback Camera Resolution
@@ -1475,8 +1502,15 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     handles.camInt.c0V = camInt_vec(4);
     handles.camInt.d1 = camInt_vec(5);
     handles.camInt.d2 = camInt_vec(6);
+    handles.camInt.d3 = 0;
     handles.camInt.t1 = camInt_vec(7);
     handles.camInt.t2 = camInt_vec(8);
+    
+    handles.camInt.NU = handles.inputs.cameraRes(1);
+    handles.camInt.NV = handles.inputs.cameraRes(2);
+    
+    handles.camInt = makeRadDist(handles.camInt);
+    handles.camInt = makeTangDist(handles.camInt);
     
     % Initial geometries (get from table values)
     htableCamExt = findobj('tag', 'tableCamExt');
