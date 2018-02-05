@@ -646,6 +646,24 @@ hButtonCamInt = uicontrol(...
     'String', 'Get',...
     'Callback', {@buttonCamInt_CallBack});
 
+% 18b & 18c. Horizontal alignment with 2 buttons (save and load camera)
+hHBoxSaveLoad = uix.HBox('Parent', hVBoxCamInt,...
+    'Spacing',3);
+hButtonSave = uicontrol(...
+    'Parent', hHBoxSaveLoad,...
+    'tag', 'buttonSave',...
+    'Style', 'pushbutton',...
+    'String', 'Save camera',...
+    'Enable','off',...
+    'Callback', {@buttonSave_CallBack});
+hButtonLoad = uicontrol(...
+    'Parent', hHBoxSaveLoad,...
+    'tag', 'buttonLoad',...
+    'Style', 'pushbutton',...
+    'String', 'Load camera',...
+    'Enable','off',...
+    'Callback', {@buttonLoad_CallBack});
+
 % 19. Table for internal camera parameters
 hTableCamInt = uitable(...
     'Parent', hHBoxCamInt,...
@@ -702,7 +720,7 @@ hEmpty = uix.Empty('Parent', hHBoxCamExtGet);
 set(hHBoxCameraName, 'Widths', [60 -1])
 set(hHBoxCameraRes, 'Widths', [60 -1 10 -1])
 set(hVBoxCamera1, 'Heights', [20 -1])
-set(hVBoxCamInt, 'Heights', [20 20 20])
+set(hVBoxCamInt, 'Heights', [20 20 20 20])
 set(hVBoxCamera2, 'Heights', [20 -1 20])
 set(hHBoxCamExtTable, 'Widths', [-1 -200 -1])
 
@@ -1357,12 +1375,19 @@ function popupCam_Callback(hObject, eventdata)
     string = hpopup.String;
     handles.inputs.cameraName = string{val};
     
-    % disable get if cameraName is 'custom'
+    % disable get if cameraName is 'custom' and enable save and load
+    % buttons
+    hButtonGet = findobj('tag','buttonGet');
+    hButtonSave = findobj('tag','buttonSave');
+    hButtonLoad = findobj('tag','buttonLoad');
     if strcmp(string{val},'custom')
-        hButtonGet = findobj('tag','buttonGet');
         hButtonGet.Enable = 'off';
+        hButtonSave.Enable = 'on';
+        hButtonLoad.Enable = 'on';
     else
         hButtonGet.Enable = 'on';
+        hButtonSave.Enable = 'off';
+        hButtonLoad.Enable = 'off';
     end
     
     guidata(hObject,handles)
@@ -1417,6 +1442,75 @@ function buttonCamInt_CallBack(hObject, eventdata)
         sprintf(' %.2f',handles.camInt.t1) ...
         sprintf(' %.2f',handles.camInt.t2) ...
         };
+    
+    guidata(hObject,handles)
+end
+% 18b. Callback Save camera
+function buttonSave_CallBack(hObject, eventdata)
+    handles = guidata(hObject);
+    
+    % Retrieve data from table and put into structure customLCP
+    htableCamInt = findobj('tag', 'tableCamInt');
+    camInt_vec = str2double(htableCamInt.Data(:,1));
+    customLCP.fx = camInt_vec(1);
+    customLCP.fy = camInt_vec(2);
+    customLCP.c0U = camInt_vec(3);
+    customLCP.c0V = camInt_vec(4);
+    customLCP.d1 = camInt_vec(5);
+    customLCP.d2 = camInt_vec(6);
+    customLCP.d3 = camInt_vec(7);
+    customLCP.t1 = camInt_vec(8);
+    customLCP.t2 = camInt_vec(9);
+    
+    hUpix = findobj('tag', 'edit17a');
+    customLCP.NU = str2double(hUpix.String);
+    if isempty(customLCP.NU) || isnan(customLCP.NU)
+        errordlg('You did not enter a number for # U pixels', 'Error');
+        error('You did not enter a number for # U pixels');
+    end
+    hVpix = findobj('tag', 'edit17b');
+    customLCP.NV = str2double(hVpix.String);
+    if isempty(customLCP.NV) || isnan(customLCP.NV)
+        errordlg('You did not enter a number for # V pixels', 'Error');
+        error('You did not enter a number for # V pixels');
+    end
+    
+    customLCP = makeRadDist(customLCP);
+    customLCP = makeTangDist(customLCP);
+    
+    % Ask user for filename and folder
+    [baseFn, folder] = uiputfile('*.mat', 'Save your camera LCP file (.mat)');
+    fileName = fullfile(folder,baseFn);
+    save(fileName,'customLCP')
+    
+    guidata(hObject,handles)
+end
+% 18c. Callback Load camera
+function buttonLoad_CallBack(hObject, eventdata)
+    handles = guidata(hObject);
+    
+    % Ask user to load camera file
+    [baseFn, folder] = uigetfile('*.mat', 'Load your camera LCP file (.mat)');
+    fileName = fullfile(folder,baseFn);
+    load(fileName);
+    
+    % Fill table
+    htableCamInt = findobj('tag', 'tableCamInt');
+    htableCamInt.Data(:,1) = {sprintf(' %.2f',customLCP.fx) ...
+        sprintf(' %.2f',customLCP.fy) ...
+        sprintf(' %.2f',customLCP.c0U) ...
+        sprintf(' %.2f',customLCP.c0V) ...
+        sprintf(' %.2f',customLCP.d1) ...
+        sprintf(' %.2f',customLCP.d2) ...
+        sprintf(' %.2f',customLCP.d3) ...
+        sprintf(' %.2f',customLCP.t1) ...
+        sprintf(' %.2f',customLCP.t2) ...
+        };
+    
+    hEdit17a = findobj('tag','edit17a');
+    hEdit17b = findobj('tag','edit17b');
+    hEdit17a.String = num2str(customLCP.NU);
+    hEdit17b.String = num2str(customLCP.NV);
     
     guidata(hObject,handles)
 end
@@ -1509,9 +1603,18 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     handles.camInt.t1 = camInt_vec(8);
     handles.camInt.t2 = camInt_vec(9);
     
-    handles.camInt.NU = handles.inputs.cameraRes(1);
-    handles.camInt.NV = handles.inputs.cameraRes(2);
-    
+    hUpix = findobj('tag', 'edit17a');
+    handles.camInt.NU = str2double(hUpix.String);
+    if isempty(handles.camInt.NU) || isnan(handles.camInt.NU)
+        errordlg('You did not enter a number for # U pixels', 'Error');
+        error('You did not enter a number for # U pixels');
+    end
+    hVpix = findobj('tag', 'edit17b');
+    handles.camInt.NV = str2double(hVpix.String);
+    if isempty(handles.camInt.NV) || isnan(handles.camInt.NV)
+        errordlg('You did not enter a number for # V pixels', 'Error');
+        error('You did not enter a number for # V pixels');
+    end
     handles.camInt = makeRadDist(handles.camInt);
     handles.camInt = makeTangDist(handles.camInt);
     
