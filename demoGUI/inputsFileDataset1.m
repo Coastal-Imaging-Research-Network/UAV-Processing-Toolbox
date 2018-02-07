@@ -1,7 +1,7 @@
 % Create inputs file that can be read by the GUI
 % Dataset 1
 %% 1. Files and paths
-mainPath = 'C:\Users\z5030440\Documents\Git\UAV-Processing-Toolbox\demoGUI\dataset1';
+mainPath = 'C:\Users\z5030440\Documents\Github\UAV-Processing-Toolbox\demoGUI\dataset1';
 
 inputs.stationStr = 'MavicC';
 inputs.pnIn = fullfile(mainPath,'inputs','frames');

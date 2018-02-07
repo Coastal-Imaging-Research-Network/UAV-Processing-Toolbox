@@ -340,7 +340,14 @@ hTextCoordsys = uicontrol(...
     'Fontsize', 9,...
     'Fontweight', 'normal',...
     'FontAngle', 'italic');
-
+hCheckLocal = uicontrol(...
+    'Parent', hHBoxSettings1,...
+    'Tag', 'checkLocal',...
+    'Style', 'checkbox',...
+    'String', 'Local',...
+    'Fontsize', 7,...
+    'Fontweight', 'bold',...
+    'Callback', {@checkLocal_CallBack});
 % 10. Argus local origin Eastings
 hHBoxSettings2 = uix.HBox(...
     'Parent', hVBoxSettings,...
@@ -413,7 +420,7 @@ hText = uicontrol(...
 hText = uicontrol(...
     'Parent', hVBoxSettings,...
     'Style', 'text',...
-    'String', 'in Argus coordinates [m]',...
+    'String', 'in Argus (cross-shore/alongshore) coordinates [m]',...
     'Fontsize', 7,...
     'Fontweight', 'normal');
 
@@ -534,7 +541,7 @@ hEmpty = uix.Empty('Parent', hHBoxSettings7);
 % Vertical
 set(hVBoxSettings, 'Heights', [20 30 30 30 30 8 20 15 30 30 30]);
 % Horizontal
-set(hHBoxSettings1, 'Widths', [90 50 -1])
+set(hHBoxSettings1, 'Widths', [90 50 -1 60])
 set(hHBoxSettings2, 'Widths', [90 -1 ])
 set(hHBoxSettings3, 'Widths', [90 -1 ])
 set(hHBoxSettings4, 'Widths', [90 -1 ])
@@ -864,47 +871,13 @@ loadInputs = questdlg('Would you like to use an input file?',...
         
 if strcmp(loadInputs, 'No')
     
-%     % Default settings (in case no inputs are provided through the GUI)
-%     handles.inputs.stationStr = 'MavicR';
-%     handles.inputs.pnIn = fullfile(currDir, 'inputsNarrabeen', 'frames');
-%     handles.inputs.pncx = fullfile(currDir, 'outputs');
-%     handles.inputs.frameFn = 'narrabeenFrames';
-%     handles.inputs.gcpFn = fullfile(currDir, 'inputsNarrabeen', 'gcpFileNarrabeen.mat');
-%     handles.inputs.instsFn = fullfile(currDir, 'inputsNarrabeen', 'InstsFileNarrabeen.m');
-%     handles.inputs.dateVect = datevec(now);
-%     handles.inputs.GMT = '0';
-%     handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
-%     handles.inputs.dayFn = argusDay(matlab2Epoch(handles.inputs.dn0));
-%     handles.inputs.ArgusCoordsys.X0 = 342505.207;   % argus local origin X
-%     handles.inputs.ArgusCoordsys.Y0 = 6266731.449;  % argus local origin Y
-%     handles.inputs.ArgusCoordsys.rot = 0;           % argus rotation angle in degrees
-%     handles.inputs.ArgusCoordsys.EPSG = 28356;      % EPSG code of the local coordsys
-%     handles.inputs.knownFlags = [0 0 0 0 0 0]; %[ xCam yCam zCam Azimuth Tilt Roll]
-%     handles.inputs.rectxy = [-100 0.5 1000 -100 0.5 1000]; % rectification specs
-%     handles.inputs.rectz = 0;            % rectification z-level
-% 
-%     % the length of gcpList and value of nRefs must be >= length(beta0)/2
-%     handles.inputs.gcpList = [1 2 3 4];   % use these gcps for init beta soln
-%     handles.inputs.nRefs = 4;             % number of ref points for stabilization
-%     bs = [0 0 0 0 0 0];                   % camera extrinsic parameters
-%     handles.inputs.beta0 = bs(find(~handles.inputs.knownFlags));
-%     handles.inputs.knowns = bs(find(handles.inputs.knownFlags));
-%     handles.inputs.cameraName = 'MavicR';
-%     handles.inputs.cameraRes = [3840 2160];
-%     
-%     handles.inputs.FOV = 100;
-%     handles.inputs.snapshotFn = fullfile('C:\Users\z5030440\Documents\UAV-Processing-Toolbox_2.0\demoGUI\inputsNarrabeen',...
-%     'snapshotNarrabeen.jpg');
-% 
-%     % Fixed settings
-%     handles.inputs.doImageProducts = 1;    % usually 1.
-%     handles.inputs.showFoundRefPoints = 0; % to display ref points as check
-%     handles.inputs.dt = 0.5/(24*3600);     % delta_t (s) converted to datenums
-%     handles.inputs.ArgusCoordsys.Z0 = 0;   % always mean sea level
-    
+    handles.inputs.localCoords = 0;
+      
 else
+    % Ask user to open an inputFile
     [inputsFn, inputPn] = uigetfile('*.m','Select input file');
-
+    
+    % Read inputs file
     p = pwd;
     eval(['cd ' inputPn]);
     [inputsFn, remain] = strtok(inputsFn, '.');
@@ -914,9 +887,9 @@ else
 
     handles.inputs = inputs;
     
-    % Display inputs and settings
+    % Display inputs from file on GUI
     
-    % Panel Inputs
+    % Panel Filenames & Pathnames
     hEdit1.String = handles.inputs.stationStr;
     hEdit2.String = handles.inputs.pnIn;
     hEdit3.String = handles.inputs.pncx;
@@ -926,19 +899,28 @@ else
     hEdit7.String = num2str(handles.inputs.nRefs);
     hEdit8.String = handles.inputs.instsFn;
     
-    % Panel Settings
+    % Panel Argus Coordinate System
     hEdit9.String = num2str(handles.inputs.ArgusCoordsys.EPSG);
-    
-    % Display name of EPSG in text field
-    latlongepsg = 4326; % not important
-    xyepsg = handles.inputs.ArgusCoordsys.EPSG;
-    [E, N, logconv] = convertCoordinates(0, 0,'CS1.code', latlongepsg, 'CS2.code', xyepsg);
-    htextCoordsys = findobj('Tag', 'textCoordsys');
-    htextCoordsys.String = logconv.CS2.name;
-    
     hEdit10.String = num2str(handles.inputs.ArgusCoordsys.X0);
     hEdit11.String = num2str(handles.inputs.ArgusCoordsys.Y0);
     hEdit12.String = num2str(handles.inputs.ArgusCoordsys.rot);
+    % Display name of EPSG in text field
+    latlongepsg = 4326; % not important just for getting the name of the epsg code
+    xyepsg = handles.inputs.ArgusCoordsys.EPSG;
+    [E, N, logconv] = convertCoordinates(0, 0,'CS1.code', latlongepsg, 'CS2.code', xyepsg);
+    hTextCoordsys.String = logconv.CS2.name;
+    
+    % If localCoords flag is on, disable Argus coordinate system fields
+    if handles.inputs.localCoords
+        hCheckLocal.Value = 1;
+        hEdit9.Enable = 'off';
+        hEdit10.Enable = 'off';
+        hEdit11.Enable = 'off';
+        hEdit12.Enable = 'off';
+        
+    end
+    
+    % Rectification limits
     hEdit13a.String = num2str(handles.inputs.rectxy(1));
     hEdit13b.String = num2str(handles.inputs.rectxy(3));
     hEdit13c.String = num2str(handles.inputs.rectxy(2));
@@ -965,9 +947,6 @@ else
         };
     % Camera extrinsic parameters
     try
-        % Get camera extrinsic parameters
-        handles.camExt = getExtrinsicParam(handles.inputs.snapshotFn,...
-            handles.inputs.ArgusCoordsys.EPSG);
         
         % Get data/time variables
         [handles.inputs.dateVect handles.inputs.GMT] = getTimestamp(handles.inputs.snapshotFn);
@@ -976,14 +955,6 @@ else
         
         % Get FOV (field of view) for calculating horizon
         handles.inputs.FOV = getFOV(handles.inputs.snapshotFn);
-        
-        % Fill table
-        htableCamExt.Data(:,1) = {sprintf(' %.2f',handles.camExt.camX) ...
-            sprintf(' %.2f',handles.camExt.camY) ...
-            sprintf(' %.2f',handles.camExt.camZ) ...
-            sprintf(' %.2f',handles.camExt.camYaw) ...
-            sprintf(' %.2f',handles.camExt.camPitch + 90) ...
-            sprintf(' %.2f',handles.camExt.camRoll)};
         
         % Known flags
         htableCamExt.Data{1,3} = not(logical(handles.inputs.knownFlags(1)));
@@ -1003,6 +974,29 @@ else
         hAxesTab2.XTick = [];
         hAxesTab2.YTick = [];
         
+        % if localCoords flag is off
+        if ~handles.inputs.localCoords
+            % Get camera extrinsic parameters from snapshot
+            handles.camExt = getExtrinsicParam(handles.inputs.snapshotFn,...
+                handles.inputs.ArgusCoordsys.EPSG);
+        else
+            % Get camera extrinsic parameters from inputsFile (in local
+            % Argus coordinates)
+            handles.camExt.camX = handles.inputs.camExt(1);
+            handles.camExt.camY = handles.inputs.camExt(2);
+            handles.camExt.camZ = handles.inputs.camExt(3);
+            handles.camExt.camYaw = handles.inputs.camExt(4);
+            handles.camExt.camPitch = handles.inputs.camExt(5) - 90;
+            handles.camExt.camRoll = handles.inputs.camExt(6);
+        end
+        
+        % Fill table
+        htableCamExt.Data(:,1) = {sprintf(' %.2f',handles.camExt.camX) ...
+            sprintf(' %.2f',handles.camExt.camY) ...
+            sprintf(' %.2f',handles.camExt.camZ) ...
+            sprintf(' %.2f',handles.camExt.camYaw) ...
+            sprintf(' %.2f',handles.camExt.camPitch + 90) ...
+            sprintf(' %.2f',handles.camExt.camRoll)};       
     catch
         errordlg('Could not read snapshot!', 'Error')
     end
@@ -1214,11 +1208,50 @@ function editEpsgcode_CallBack(hObject, eventdata)
     end
     
     % Display name of EPSG in text field
-    latlongepsg = 4326; % not important
-    xyepsg = handles.inputs.ArgusCoordsys.EPSG;
-    [E, N, logconv] = convertCoordinates(0, 0,'CS1.code', latlongepsg, 'CS2.code', xyepsg);
-    htextCoordsys = findobj('Tag', 'textCoordsys');
-    htextCoordsys.String = logconv.CS2.name;
+    try
+        latlongepsg = 4326; % not important
+        xyepsg = handles.inputs.ArgusCoordsys.EPSG;
+        [E, N, logconv] = convertCoordinates(0, 0,'CS1.code', latlongepsg, 'CS2.code', xyepsg);
+        hTextCoordsys = findobj('Tag', 'textCoordsys');
+        hTextCoordsys.String = logconv.CS2.name;
+    catch
+        errordlg(['EPSG code unknown : ' num2str(handles.inputs.ArgusCoordsys.EPSG)], 'Error');
+        error(['EPSG code unknown : ' num2str(handles.inputs.ArgusCoordsys.EPSG)]);
+    end
+    guidata(hObject,handles)
+end
+% 9b. Checkbox Local coordinates
+function checkLocal_CallBack(hObject, eventdata)
+    handles = guidata(hObject);
+    
+    hCheckLocal = findobj('tag','checkLocal');
+    hEditEpsgcode = findobj('tag', 'edit9');
+    hEditXArgus = findobj('tag', 'edit10');
+    hEditYArgus = findobj('tag', 'edit11');
+    hEditRotArgus = findobj('tag', 'edit12');
+    
+    if hCheckLocal.Value == 1
+        
+        % Set localCoords to TRUE
+        handles.inputs.localCoords = 1;
+        
+        % Disable all the panel 
+        hEditEpsgcode.Enable = 'off';
+        hEditXArgus.Enable = 'off';
+        hEditYArgus.Enable = 'off';
+        hEditRotArgus.Enable = 'off';
+        
+    else
+        % Set localCoords to FALSE
+        handles.inputs.localCoords = 0;
+        
+        % Enable all the panels
+        hEditEpsgcode.Enable = 'on';
+        hEditXArgus.Enable = 'on';
+        hEditYArgus.Enable = 'on';
+        hEditRotArgus.Enable = 'on';
+
+    end
     
     guidata(hObject,handles)
 end
@@ -1522,10 +1555,7 @@ function buttonCamExt_CallBack(hObject, eventdata)
     [filename, pathname] = uigetfile('*.jpg', 'Select the Snapshot');
 
     % Extract exttrinsic camera parameters (exiftool)
-    % Use EPSG code to convert from lat/lon (WGS84) to local coordsys
-    handles.camExt = getExtrinsicParam([pathname filename],...
-        handles.inputs.ArgusCoordsys.EPSG);
-
+    
     % Get data/time variables
     [handles.inputs.dateVect handles.inputs.GMT] = getTimestamp([pathname filename]);
     handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
@@ -1534,14 +1564,21 @@ function buttonCamExt_CallBack(hObject, eventdata)
     % Get FOV (field of view) for calculating horizon
     handles.inputs.FOV = getFOV([pathname filename]);
     
-    % Fill table
-    htableCamExt = findobj('tag', 'tableCamExt');
-    htableCamExt.Data(:,1) = {sprintf(' %.2f',handles.camExt.camX) ...
-        sprintf(' %.2f',handles.camExt.camY) ...
-        sprintf(' %.2f',handles.camExt.camZ) ...
-        sprintf(' %.2f',handles.camExt.camYaw) ...
-        sprintf(' %.2f',handles.camExt.camPitch + 90) ...
-        sprintf(' %.2f',handles.camExt.camRoll)};
+    % if localCoords flag is off
+    if ~handles.inputs.localCoords
+        % Use EPSG code to convert from lat/lon (WGS84) to local coordsys
+        handles.camExt = getExtrinsicParam([pathname filename],...
+            handles.inputs.ArgusCoordsys.EPSG); 
+        
+        % Fill table
+        htableCamExt = findobj('tag', 'tableCamExt');
+        htableCamExt.Data(:,1) = {sprintf(' %.2f',handles.camExt.camX) ...
+            sprintf(' %.2f',handles.camExt.camY) ...
+            sprintf(' %.2f',handles.camExt.camZ) ...
+            sprintf(' %.2f',handles.camExt.camYaw) ...
+            sprintf(' %.2f',handles.camExt.camPitch + 90) ...
+            sprintf(' %.2f',handles.camExt.camRoll)};     
+    end
     
     % Display snapshot
     I = imread(fullfile(pathname, filename));
@@ -1553,7 +1590,7 @@ function buttonCamExt_CallBack(hObject, eventdata)
         handles.inputs.GMT] , 'fontweight', 'normal', 'fontsize' , 11);
     hAxesTab2.XTick = [];
     hAxesTab2.YTick = [];
-    
+    hAxesTab2.Tag = 'axesTab2';
     
     guidata(hObject,handles)
 end
@@ -1571,23 +1608,28 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     
     handles.gcp = gcpFile.gcp;
     
-    % Convert gcps from Local to Argus coordinates
-    argusOrigin = [handles.inputs.ArgusCoordsys.X0, ...
-                   handles.inputs.ArgusCoordsys.Y0, ...
-                   handles.inputs.ArgusCoordsys.Z0];
-               
-    argusRotation = handles.inputs.ArgusCoordsys.rot;
-   
-    for i = 1:length(handles.gcp)
+    % if localCoords flag is off, convert from world to argus
+    if ~handles.inputs.localCoords
         
-        coord = [handles.gcp(i).x handles.gcp(i).y handles.gcp(i).z];
+        % Convert gcps from world to Argus coordinates
+        argusOrigin = [handles.inputs.ArgusCoordsys.X0, ...
+            handles.inputs.ArgusCoordsys.Y0, ...
+            handles.inputs.ArgusCoordsys.Z0];
         
-        % convert from local to argus
-        xyzArg = local2Argus(coord, argusOrigin, argusRotation);
-        % update the values in gcp structure
-        handles.gcp(i).x = xyzArg(1);
-        handles.gcp(i).y = xyzArg(2);
-        handles.gcp(i).z = xyzArg(3);
+        argusRotation = handles.inputs.ArgusCoordsys.rot;
+        
+        for i = 1:length(handles.gcp)
+            
+            coord = [handles.gcp(i).x handles.gcp(i).y handles.gcp(i).z];
+            
+            % convert from world to argus
+            xyzArg = local2Argus(coord, argusOrigin, argusRotation);
+            % update the values in gcp structure
+            handles.gcp(i).x = xyzArg(1);
+            handles.gcp(i).y = xyzArg(2);
+            handles.gcp(i).z = xyzArg(3);
+        end
+        
     end
     
     % Lens calibration camera parameters (get table values)
@@ -1628,18 +1670,26 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     handles.camExt.camTilt= camExt_vec(5);
     handles.camExt.camYaw = camExt_vec(4);
     
-    % Convert initial geometry from Local to Argus coordinates
-    coord = camExt_vec(1:3)';
-    xyzArg = local2Argus(coord, argusOrigin, argusRotation);
+    % if localCoords flag is off, convert from world to argus
+    if ~handles.inputs.localCoords
+        % Convert initial geometry from Local to Argus coordinates
+        coord = camExt_vec(1:3)';
+        xyzArg = local2Argus(coord, argusOrigin, argusRotation);
     
-    % Subtract Argus rotation to Azimuth angle
-    az_corrected = handles.camExt.camYaw - argusRotation;
-    
-    % Fill inputs structure
-    handles.inputs.xyCam = xyzArg([1 2]);
-    handles.inputs.zCam = handles.camExt.camZ - handles.inputs.ArgusCoordsys.Z0;
-    handles.inputs.azTilt = [az_corrected handles.camExt.camTilt] / 180*pi;
-    handles.inputs.roll = handles.camExt.camRoll / 180*pi;
+        % Subtract Argus rotation to Azimuth angle
+        az_corrected = handles.camExt.camYaw - argusRotation;
+        
+        % Fill inputs structure
+        handles.inputs.xyCam = xyzArg([1 2]);
+        handles.inputs.zCam = handles.camExt.camZ - handles.inputs.ArgusCoordsys.Z0;
+        handles.inputs.azTilt = [az_corrected handles.camExt.camTilt] / 180*pi;
+        handles.inputs.roll = handles.camExt.camRoll / 180*pi;
+    else
+        handles.inputs.xyCam = [handles.camExt.camX handles.camExt.camY];
+        handles.inputs.zCam = handles.camExt.camZ;
+        handles.inputs.azTilt = [handles.camExt.camYaw handles.camExt.camTilt] / 180*pi;
+        handles.inputs.roll = handles.camExt.camRoll / 180*pi;     
+    end
     
     % Get knownFlags from table ticks
     handles.inputs.knownFlags = not([htableCamExt.Data{:,3}]);
