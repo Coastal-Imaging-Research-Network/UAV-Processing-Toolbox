@@ -26,7 +26,7 @@ inputs.ArgusCoordsys.rot = 0;          % argus rotation angle in degrees
 inputs.ArgusCoordsys.EPSG = 28356;     % EPSG code of the local coordsys
 
 % Addition : if user wants to input local Argus coordinates
-inputs.localCoords = 1; % set this variable to 1 only if inputs are in local Argus coordinates (cross-shore / alongshore)
+inputs.localCoords = 0; % set this variable to 1 only if inputs are in local Argus coordinates (cross-shore / alongshore)
 if inputs.localCoords
    inputs.camExt =  [0 0 0 0 0 0]; % enter the camera extrinsic parameters in local Argus coordinates
    % the order is : [ X Y Z Azimuth Tilt Roll] 
