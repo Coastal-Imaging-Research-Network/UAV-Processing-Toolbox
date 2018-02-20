@@ -27,14 +27,17 @@ betaNew = nlinfit(xyz,[Ur(:); Vr(:)],'findUVnDOF',beta);
 beta6dof(find(meta.globals.knownFlags)) = meta.globals.knowns;
 beta6dof(find(~meta.globals.knownFlags)) = betaNew;
 
-% show results in case debug is needed
-figure(2); clf; colormap(gray)
-imagesc(Ig)
-hold on
-plot(Ur,Vr,'r*')
-uv = findUVnDOF(beta6dof, xyz, globs);
-uv = reshape(uv,[],2);
-plot(uv(:,1),uv(:,2),'ko')
+if( meta.showInputImages == 1 )
+    % show results in case debug is needed
+    figure(2); clf; colormap(gray)
+    imagesc(Ig); axis image
+    hold on
+    plot(Ur,Vr,'r*')
+    uv = findUVnDOF(beta6dof, xyz, globs);
+    uv = reshape(uv,[],2);
+    plot(uv(:,1),uv(:,2),'ko')
+    hold off; drawnow;
+end;
 
 %
 %   Copyright (C) 2017  Coastal Imaging Research Network

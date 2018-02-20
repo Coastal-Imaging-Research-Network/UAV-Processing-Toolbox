@@ -56,6 +56,7 @@ I = imread([inputs.pnIn filesep clipFns(1).name filesep fns{1}(1).name]);
 [NV, NU, NC] = size(I);
 Ig = rgb2gray(I);           % for later sampling.
 meta.showFoundRefPoints = inputs.showFoundRefPoints; % easy way to pass.
+meta.showInputImages = inputs.showInputImages;
 
 % Because nlinfit requires globals, we set up a variable globals (under 
 % metadata) that contains the lcp as well as the flags and values for
