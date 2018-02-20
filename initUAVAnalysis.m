@@ -22,11 +22,20 @@ xyz = [x' y' z'];
 
 % digitize the gcps and find best fit geometry
 figure(1); clf
-imagesc(I);
+imagesc(I); axis image; 
 disp(['computing geometry using ' num2str(nGcps) ' control points'])
-for i = 1: nGcps
-    disp(['Digitize ' gcp(in.gcpList(i)).name])
+zoom reset
+for i = 1: nGcps    
+    disp(['Zoom in to see ' gcp(in.gcpList(i)).name ' then press Enter'])
+    tit = title(['Zoom in to see ' gcp(in.gcpList(i)).name ' then press Enter']);     
+    zoom on; 
+    pause
+    zoom off; 
+    disp(['Digitize ' gcp(in.gcpList(i)).name])    
+    tit = title(['Now digitize ' gcp(in.gcpList(i)).name ]); 
     UV(i,:) = ginput(1);     
+    delete(tit)
+    zoom out
 end
 beta = nlinfit(xyz,[UV(:,1); UV(:,2)],'findUVnDOF',in.beta0);
 
@@ -35,7 +44,7 @@ hold on
 plot(UV(:,1),UV(:,2),'g*')
 UV2 = findUVnDOF(beta,xyz,globs);
 UV2 = reshape(UV2,[],2);
-plot(UV2(:,1),UV2(:,2),'ro')
+plot(UV2(:,1),UV2(:,2),'ro'); 
 
 % now identify nRefPoints reference points
 disp(' ')
@@ -45,7 +54,7 @@ disp('to allow for inter-frame aim point wander.')
 disp(' ')
 foo = input('Hit <Enter> to replot image and continue - ');
 figure(1);clf
-imagesc(I)
+imagesc(I); axis image; 
 Ig = rgb2gray(I);
 disp('PICK FIRST POINT WITH LARGE BOUNDING BOX')
 clear refPoints
@@ -56,12 +65,15 @@ beta6DOF(find(~globs.knownFlags)) = beta;
 for i = 1: in.nRefs
     disp(['pick top left and bottom right corner of point ' ...
         num2str(i) ' of ' num2str(in.nRefs)])
+    tit = title(['pick top left and bottom right corner of point ' ...
+        num2str(i) ' of ' num2str(in.nRefs)]); 
     c = ginput(2);
     [refPoints(i).Ur,refPoints(i).Vr, refPoints(i).thresh] = ...
         findCOMRefObjFirstPass(Ig, c);
     refPoints(i).dUV = round(diff(c)/2);
     refPoints(i).xyz = findXYZ6dof(refPoints(i).Ur, refPoints(i).Vr, in.zRefs, ...
         beta6DOF, meta.globals.lcp);
+    delete(tit);
 end
 
 

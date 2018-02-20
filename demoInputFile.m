@@ -34,6 +34,7 @@ inputs.zRefs = 7;                    % assumed z level of ref points
 % 4.  Processing parameters
 inputs.doImageProducts = 1;                    % usually 1.
 inputs.showFoundRefPoints = 0;                 % to display ref points as check
+inputs.showInputImages = 1;                    % display each input image as it is processed
 inputs.rectxy = [50 0.5 500 400 0.5 1000];     % rectification specs
 inputs.rectz = 0;                              % rectification z-level
 

@@ -2,14 +2,17 @@ function r = makePixelInstsDemo( )
 
 % Make pixel instruments using pixel toolbox. duplicate of demoInstsFile.
 
+% start by forgetting everything you know
 PIXForget;
+% and set the station name
 PIXSetStation('aerielle');
 
+% sea level
 zmsl = 0;
 
 instID = [];
 
-% vbar insts
+% vbar insts, two y transects 
 y = [450 700];
 x = [125:25:225];
 
@@ -22,9 +25,15 @@ for ii=1:length(x)
 end
 
 % runup
+% note: normally for a runup line you want to keep a fixed X and Y.
+% This requires knowing the Z for each point on the line. For a fixed
+% station you may have done the survey transects or have other information
+% that allows you to know that. For a UAV operation, you probably do not,
+% Thus this is the "no Z" call.
+
 xshore = 125;
 xdune  = 70;
-y = 60:50:650;
+y = 600:50:650;
 rot = 0;
 
 for ii=1:length(y)
@@ -35,7 +44,7 @@ for ii=1:length(y)
     instID = [instID tid];
 end
 
-% cBathy
+% cBathy, 5 meter points
 dx = 5;
 dy = 5;
 x1 = 80;
@@ -61,7 +70,7 @@ pid = PIXCreatePackage('AerielleDemo', instID);
 e = matlab2Epoch(now);
 
 % build the initial r
-r = PIXCreateR( pid, e, zmsl, 'none' );
+r = PIXCreateR( pid, e, zmsl, 'uav' );
 
 end
 
