@@ -1,0 +1,1 @@
+If adding custom data transformations to the EPSG database, that can be done by editing the *.csv files in this folder. Use negative numbers for the codes to indicate that they are custom added. Also, this will prevent these methods from overriding default methods.
