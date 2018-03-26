@@ -9,14 +9,14 @@ close all
 clc
 
 % Some graphical settings
-set(0,'DefaultTextFontsize',10, ...
-'DefaultTextFontname','Times New Roman', ...
-'DefaultTextFontWeight','bold', ...
-'DefaultAxesFontsize',10, ...
-'DefaultAxesFontname','Times New Roman', ...
-'DefaultLineLineWidth', 1.5,...
-'DefaultLineMarkerSize', 8,...
-'DefaultAxesLineWidth', 0.75)
+% set(0,'DefaultTextFontsize',10, ...
+% 'DefaultTextFontname','Times New Roman', ...
+% 'DefaultTextFontWeight','bold', ...
+% 'DefaultAxesFontsize',10, ...
+% 'DefaultAxesFontname','Times New Roman', ...
+% 'DefaultLineLineWidth', 1.5,...
+% 'DefaultLineMarkerSize', 8,...
+% 'DefaultAxesLineWidth', 0.75)
 
 
 % Add path
@@ -27,10 +27,10 @@ addpath(genpath(mainDir));
 
 
 % Set some default values
-set(groot,'DefaultAxesFontSize',8)
-set(groot,'DefaultLineLineWidth',1.5)
+% set(groot,'DefaultAxesFontSize',8)
+% set(groot,'DefaultLineLineWidth',1.5)
 set(groot,'Units','normalized')
-set(groot,'DefaultTextFontSize',16,'DefaultTextFontName','times')
+% set(groot,'DefaultTextFontSize',16,'DefaultTextFontName','times')
 
 %% Figure
 f = figure(...
@@ -1705,13 +1705,14 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
         error('Frames could not be found. Verify the following fields: Input folder, Frames suffix')
     end
     
-    % Save inputs structure in the output folder
+    % Save inputs structure in a log file (.mat)
     inputs = handles.inputs;
-    save(fullfile(handles.inputs.pncx, 'inputs.mat'), 'inputs')
+    save(fullfile(handles.inputs.pncx,...
+        ['log_' datestr(now, 'yyyymmdd_HHMMSS') '.mat']), 'inputs')
     
     hbuttonFinishedInit = findobj('Tag', 'buttonFinishedInit');
     hbuttonFinishedInit.BackgroundColor = [0.94 0.94 0.94];
-    hbuttonFinishedInit.Enable = 'off';
+    %hbuttonFinishedInit.Enable = 'off';
     
     guidata(hObject,handles)
 end
@@ -1849,13 +1850,17 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         end
         
         % Find best fit geometry (extrinsic parameters)
-        
         options.Tolfun = 1e-12;
         options.TolX = 1e-12;
+        try
+            % Non-linear fit, output geometry, residuals, covariance matrix and mse
+            [beta, R, ~, CovB, mse, ~] = ....
+                nlinfit(xyz, [UV(:,1); UV(:,2)], 'findUVnDOF', inputs.beta0, options);
+        catch
+            errordlg('Could not compute geometry with the given GCPs', 'Error');
+            error('Could not compute geometry with the given GCPs');
+        end
         
-        % Non-linear fit, output geometry, residuals, covariance matrix and mse
-        [beta, R, ~, CovB, mse, ~] = ....
-            nlinfit(xyz, [UV(:,1); UV(:,2)], 'findUVnDOF', inputs.beta0, options);
         % Compute confidence intervals for each of the fitted parameters
         ci = nlparci(beta, R, 'covar', CovB);
         
@@ -2093,6 +2098,7 @@ function buttonPixelInsts_CallBack(hObject, eventdata)
     clear p idx_filesep idx_format instfile_name
     
     % Plot pixel instruments
+    cmap = hsv(length(insts));
     imagesc(I, 'Parent', hAxesTab3)
     for i = 1: length(insts)
         xyz = [insts(i).xyzAll];
@@ -2100,7 +2106,7 @@ function buttonPixelInsts_CallBack(hObject, eventdata)
         UV_insts = reshape(UV_insts,[],2);
         good = logical(onScreen(UV_insts(:,1), UV_insts(:,2), NU, NV));
         UV_insts = UV_insts(good,:);
-        plot(hAxesTab3, UV_insts(:,1),UV_insts(:,2),'.')
+        plot(hAxesTab3, UV_insts(:,1),UV_insts(:,2),'.', 'color', cmap(i,:))
     end
     
     htextCommand1.String = 'Are you happy with the pixel instruments?';

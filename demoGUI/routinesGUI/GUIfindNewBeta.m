@@ -42,6 +42,7 @@ colormap(gray)
 imagesc(Ig, 'Parent', currentAxes)
 hold on
 axis off
+axis image
 plot(currentAxes, Ur,Vr,'r*')
 uv = findUVnDOF(beta6dof, xyz, globs);
 uv = reshape(uv,[],2);
