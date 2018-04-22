@@ -25,7 +25,6 @@ index = regexp(str, filesep);
 mainDir = str(1:index(end-1));
 addpath(genpath(mainDir));
 
-
 % Set some default values
 % set(groot,'DefaultAxesFontSize',8)
 % set(groot,'DefaultLineLineWidth',1.5)
@@ -946,61 +945,101 @@ else
         sprintf(' %.2f',handles.camInt.t2) ...
         };
     % Camera extrinsic parameters
-    try
+    
+    % check if snapshotFn field is empty or not
+    % if snapshot available, extract metadata from snapshot with exiftool
+    % routines
+    if ~isempty(handles.inputs.snapshotFn)
+        % try/catch structure in case the snapshot is not found
+        try
         
-        % Get data/time variables
-        [handles.inputs.dateVect handles.inputs.GMT] = getTimestamp(handles.inputs.snapshotFn);
-        handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
-        handles.inputs.dayFn = argusDay(matlab2Epoch(handles.inputs.dn0));
-        
-        % Get FOV (field of view) for calculating horizon
-        handles.inputs.FOV = getFOV(handles.inputs.snapshotFn);
-        
-        % Known flags
-        htableCamExt.Data{1,3} = not(logical(handles.inputs.knownFlags(1)));
-        htableCamExt.Data{2,3} = not(logical(handles.inputs.knownFlags(2)));
-        htableCamExt.Data{3,3} = not(logical(handles.inputs.knownFlags(3)));
-        htableCamExt.Data{4,3} = not(logical(handles.inputs.knownFlags(4)));
-        htableCamExt.Data{5,3} = not(logical(handles.inputs.knownFlags(5)));
-        htableCamExt.Data{6,3} = not(logical(handles.inputs.knownFlags(6)));
+            % Get data/time variables
+            [handles.inputs.dateVect handles.inputs.GMT] = getTimestamp(handles.inputs.snapshotFn);
+            handles.inputs.dn0 = datenum(handles.inputs.dateVect) - str2double(handles.inputs.GMT)/24;
+            handles.inputs.dayFn = argusDay(matlab2Epoch(handles.inputs.dn0));
 
-        % Display snapshot
-        I = imread(handles.inputs.snapshotFn);
-        imagesc(I, 'Parent', hAxesTab2);
-        hAxesTab2.DataAspectRatio = [1 1 1];
-        title(hAxesTab2, ['Snapshot from ' handles.inputs.stationStr ' ' ...
-            datestr(handles.inputs.dateVect) ' GMT ' ...
-            handles.inputs.GMT] , 'fontweight', 'normal', 'fontsize' , 11);
-        hAxesTab2.XTick = [];
-        hAxesTab2.YTick = [];
-        
-        % if localCoords flag is off
-        if ~handles.inputs.localCoords
-            % Get camera extrinsic parameters from snapshot
-            handles.camExt = getExtrinsicParam(handles.inputs.snapshotFn,...
-                handles.inputs.ArgusCoordsys.EPSG);
-        else
-            % Get camera extrinsic parameters from inputsFile (in local
-            % Argus coordinates)
-            handles.camExt.camX = handles.inputs.camExt(1);
-            handles.camExt.camY = handles.inputs.camExt(2);
-            handles.camExt.camZ = handles.inputs.camExt(3);
-            handles.camExt.camYaw = handles.inputs.camExt(4);
-            handles.camExt.camPitch = handles.inputs.camExt(5) - 90;
-            handles.camExt.camRoll = handles.inputs.camExt(6);
+            % Get FOV (field of view) for calculating horizon
+            handles.inputs.FOV = getFOV(handles.inputs.snapshotFn);
+
+            % Known flags
+            htableCamExt.Data{1,3} = not(logical(handles.inputs.knownFlags(1)));
+            htableCamExt.Data{2,3} = not(logical(handles.inputs.knownFlags(2)));
+            htableCamExt.Data{3,3} = not(logical(handles.inputs.knownFlags(3)));
+            htableCamExt.Data{4,3} = not(logical(handles.inputs.knownFlags(4)));
+            htableCamExt.Data{5,3} = not(logical(handles.inputs.knownFlags(5)));
+            htableCamExt.Data{6,3} = not(logical(handles.inputs.knownFlags(6)));
+
+            % Display snapshot
+            I = imread(handles.inputs.snapshotFn);
+            imagesc(I, 'Parent', hAxesTab2);
+            hAxesTab2.DataAspectRatio = [1 1 1];
+            title(hAxesTab2, ['Snapshot from ' handles.inputs.stationStr ' ' ...
+                datestr(handles.inputs.dateVect) ' GMT ' ...
+                handles.inputs.GMT] , 'fontweight', 'normal', 'fontsize' , 11);
+            hAxesTab2.XTick = [];
+            hAxesTab2.YTick = [];
+
+            % if localCoords flag is off
+            if ~handles.inputs.localCoords
+                % Get camera extrinsic parameters from snapshot
+                handles.camExt = getExtrinsicParam(handles.inputs.snapshotFn,...
+                    handles.inputs.ArgusCoordsys.EPSG);
+            else
+                % Get camera extrinsic parameters from inputsFile (in local
+                % Argus coordinates)
+                handles.camExt.camX = handles.inputs.camExt(1);
+                handles.camExt.camY = handles.inputs.camExt(2);
+                handles.camExt.camZ = handles.inputs.camExt(3);
+                handles.camExt.camYaw = handles.inputs.camExt(4);
+                handles.camExt.camPitch = handles.inputs.camExt(5) - 90;
+                handles.camExt.camRoll = handles.inputs.camExt(6);
+            end
+
+            % Fill table
+            htableCamExt.Data(:,1) = {sprintf(' %.2f',handles.camExt.camX) ...
+                sprintf(' %.2f',handles.camExt.camY) ...
+                sprintf(' %.2f',handles.camExt.camZ) ...
+                sprintf(' %.2f',handles.camExt.camYaw) ...
+                sprintf(' %.2f',handles.camExt.camPitch + 90) ...
+                sprintf(' %.2f',handles.camExt.camRoll)};       
+        catch
+            errordlg('Could not read snapshot!', 'Error')
         end
         
-        % Fill table
-        htableCamExt.Data(:,1) = {sprintf(' %.2f',handles.camExt.camX) ...
-            sprintf(' %.2f',handles.camExt.camY) ...
-            sprintf(' %.2f',handles.camExt.camZ) ...
-            sprintf(' %.2f',handles.camExt.camYaw) ...
-            sprintf(' %.2f',handles.camExt.camPitch + 90) ...
-            sprintf(' %.2f',handles.camExt.camRoll)};       
-    catch
-        errordlg('Could not read snapshot!', 'Error')
+    % in case there isn't any snapshot available
+    else
+            % if localCoords flag is off
+            if ~handles.inputs.localCoords
+                % Set all extrinsic parameters to 0
+                handles.camExt.camX = 0;
+                handles.camExt.camY = 0;
+                handles.camExt.camZ = 0;
+                handles.camExt.camYaw = 0;
+                handles.camExt.camPitch = 0;
+                handles.camExt.camRoll = 0;
+            else
+                % Get camera extrinsic parameters from inputsFile (in local
+                % Argus coordinates)
+                handles.camExt.camX = handles.inputs.camExt(1);
+                handles.camExt.camY = handles.inputs.camExt(2);
+                handles.camExt.camZ = handles.inputs.camExt(3);
+                handles.camExt.camYaw = handles.inputs.camExt(4);
+                handles.camExt.camPitch = handles.inputs.camExt(5) - 90;
+                handles.camExt.camRoll = handles.inputs.camExt(6);
+            end
+            % Fill table
+            htableCamExt.Data(:,1) = {sprintf(' %.2f',handles.camExt.camX) ...
+                sprintf(' %.2f',handles.camExt.camY) ...
+                sprintf(' %.2f',handles.camExt.camZ) ...
+                sprintf(' %.2f',handles.camExt.camYaw) ...
+                sprintf(' %.2f',handles.camExt.camPitch + 90) ...
+                sprintf(' %.2f',handles.camExt.camRoll)};
+            % set title as "no snapshot available"
+            plot(hAxesTab2, 1,1,'wo')
+            hAxesTab2.XTick = [];
+            hAxesTab2.YTick = [];            
+            title(hAxesTab2, 'NO SNAPSHOT AVAILABLE')
     end
-
 end
 
 handles.plotOn1 = 0;
@@ -1708,7 +1747,7 @@ function buttonFinishedInit_CallBack(hObject, eventdata)
     % Save inputs structure in a log file (.mat)
     inputs = handles.inputs;
     save(fullfile(handles.inputs.pncx,...
-        ['log_' datestr(now, 'yyyymmdd_HHMMSS') '.mat']), 'inputs')
+        ['log_input' datestr(now, 'yyyymmdd_HHMMSS') '.mat']), 'inputs')
     
     hbuttonFinishedInit = findobj('Tag', 'buttonFinishedInit');
     hbuttonFinishedInit.BackgroundColor = [0.94 0.94 0.94];
@@ -1726,6 +1765,7 @@ function buttonFirstframe_CallBack(hObject, eventdata)
     % Initialize a UAV movie analysis using the first frame.
     % Replaces initUAVAnalysis.m
     
+    % Load GCPs
     inputs = handles.inputs;
     try
         gcp = handles.gcp;
@@ -1787,7 +1827,7 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         
         % Show gcps and refpoints of metadata loaded
         imagesc(I, 'Parent', hAxesTab3);
-        
+        axis image
         % Show GCPs
         plot(hAxesTab3, meta.gcpUV_clicked(:,1), meta.gcpUV_clicked(:,2), 'go', 'markerfacecolor', 'g', 'markersize', 3)
         plot(hAxesTab3, meta.gcpUV_computed(:,1),meta.gcpUV_computed(:,2),'ro')
@@ -1832,7 +1872,7 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         xyz = [x' y' z'];
 
         imagesc(I, 'Parent', hAxesTab3);
-
+        axis image
         % Digitize position of each gcp in gcpList
         
         htextCommand1.String = ['Computing geometry using ' num2str(nGcps) ' control points...'...
@@ -1955,6 +1995,7 @@ function buttonFirstframe_CallBack(hObject, eventdata)
         delete(findobj('Tag','checkpoints'));
         Ig = rgb2gray(I);
         imagesc(Ig, 'Parent', hAxesTab3);
+        axis image
         colormap(hAxesTab3, 'gray')
         
         htextCommand1.String = ['Identify ' num2str(inputs.nRefs) ' reference points ... '...
@@ -2069,6 +2110,19 @@ end
 
 function buttonPixelInsts_CallBack(hObject, eventdata)
     handles = guidata(hObject);
+    
+    % Add path to PIXel-Toolbox
+    str = which('GUIforUAVtoolbox.m');
+    index = regexp(str, filesep);
+    gitDir = str(1:index(end-2));
+    pathPIX = fullfile(gitDir, 'PIXel-Toolbox');
+    addpath(genpath(pathPIX))
+    % Check if path was properly added, otherwise ask user to select folder
+    % containing the PIXel-Toolbox
+    if isempty(which('PIXAddLine.m'))
+        pathPIX = uigetdir(gitDir, 'Select folder containing the PIXel-Toolbox');
+        addpath(genpath(pathPIX))
+    end
     
     htextCommand1 = findobj('Tag', 'textCommand1');
     htextCommand2 = findobj('Tag', 'textCommand2');

@@ -2,6 +2,8 @@
 % Dataset 1
 %% 1. Files and paths
 mainPath = 'C:\Users\z5030440\Documents\Github\UAV-Processing-Toolbox\demoGUI\dataset1';
+mainPath = 'C:\Users\Kilian\Documents\GitHub\UAV-Processing-Toolbox\demoGUI\dataset1';
+
 
 inputs.stationStr = 'MavicC';
 inputs.pnIn = fullfile(mainPath,'inputs','frames');
@@ -9,6 +11,8 @@ inputs.pncx = fullfile(mainPath,'outputs');
 inputs.frameFn = 'narrabeenFrames';
 inputs.gcpFn = fullfile(mainPath,'inputs','gcpFileNarrabeen.mat');
 inputs.instsFn = fullfile(mainPath,'inputs','InstsFileNarrabeen.m');
+% fn for snapshot taken before starting to record the video
+% if no snapshot available, set inputs.snapshotFn = []
 inputs.snapshotFn = fullfile(mainPath,'inputs','snapshotNarrabeen.jpg');
 
 %% 2. Date
