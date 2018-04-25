@@ -2,6 +2,7 @@
 % Dataset 2
 %% 1. Files and paths
 mainPath = 'C:\Users\z5030440\Documents\Github\UAV-Processing-Toolbox\demoGUI\dataset2';
+mainPath = 'C:\Users\Kilian\Documents\GitHub\UAV-Processing-Toolbox\demoGUI\dataset2';
 
 inputs.stationStr = 'MavicC';
 inputs.pnIn = fullfile(mainPath,'inputs','frames');

@@ -2137,7 +2137,7 @@ function buttonPixelInsts_CallBack(hObject, eventdata)
 
     global globs
     globs = meta.globals;
-    
+
     % Load InstsFile and show the pixel instruments on first frame
     p = pwd;
     idx_filesep = strfind(inputs.instsFn, filesep);
@@ -2145,29 +2145,36 @@ function buttonPixelInsts_CallBack(hObject, eventdata)
     instfile_name = inputs.instsFn(idx_filesep(end)+1:end);
     idx_format = strfind(inputs.instsFn(idx_filesep(end)+1:end), '.');
     instfile_name = instfile_name(1:idx_format-1);
-    eval(['insts = ' instfile_name ' ;'] );
+    eval(['r = ' instfile_name ' ;'] );
     eval(['cd ' p]);
-    insts = fillInsts(insts,betas(1,:),meta);
     
     clear p idx_filesep idx_format instfile_name
     
+    % set up instruments and stacks for PIXel toolbox
+    [geom, cam, ip] = lcpBeta2GeomCamIp( meta.globals.lcp, betas(1,:) );
+    r = PIXParameterizeR( r, cam, geom, ip );
+    r = PIXRebuildCollect( r );
+    
     % Plot pixel instruments
-    cmap = hsv(length(insts));
+    diff_insts = unique(r.names);
+    n_insts = length(diff_insts);
+     
+    cmap = hsv(n_insts);
     imagesc(I, 'Parent', hAxesTab3)
-    for i = 1: length(insts)
-        xyz = [insts(i).xyzAll];
-        UV_insts = findUVnDOF(betas(1,:),xyz, globs);
-        UV_insts = reshape(UV_insts,[],2);
-        good = logical(onScreen(UV_insts(:,1), UV_insts(:,2), NU, NV));
-        UV_insts = UV_insts(good,:);
-        plot(hAxesTab3, UV_insts(:,1),UV_insts(:,2),'.', 'color', cmap(i,:))
+    for i = 1: n_insts
+        label_insts = strcmp(r.names,diff_insts{i});
+        U_insts = r.cams.U(label_insts);
+        V_insts = r.cams.V(label_insts);
+        plot(hAxesTab3, U_insts,V_insts,'.', 'color', cmap(i,:))
     end
+    xlim(hAxesTab3, [0 NU])
+    ylim(hAxesTab3, [0 NV])
     
     htextCommand1.String = 'Are you happy with the pixel instruments?';
     textX = sprintf(' If yes: press the Batch processing button. \n If not: modify the InstsFile and press the Pixel instruments button to replot.'); 
     htextCommand2.String = textX;
       
-    handles.insts = insts;
+    handles.insts = r;
     
     % Enable bactch processing button
     hBatchprocessing = findobj('Tag', 'batchprocessing');
@@ -2192,7 +2199,7 @@ function buttonBatch_CallBack(hObject, eventdata)
     inputs = handles.inputs;
     gcp = handles.gcp;
     meta = handles.meta;
-    insts = handles.insts;
+    r = handles.insts;
     betas = meta.betas;
     CI = meta.CI;
     MSE = meta.MSE;
@@ -2233,15 +2240,10 @@ function buttonBatch_CallBack(hObject, eventdata)
     hBatchprocessing = findobj('Tag', 'batchprocessing');
     hBatchprocessing.Enable = 'off';
      
-    % Save the info in the stack structure.
-    for i = 1: length(insts)
-        stack(i).inst = insts(i);
-        stack(i).dn = dn;
-        stack(i).xyzAll = insts(i).xyzAll;
-        nPix = size(insts(i).xyzAll,1);
-        % initialize data
-        stack(i).data = nan(NClips,nPix,1);        
-    end
+    % save the info in the stacks structure.
+    stack.r = r;
+    nPix = size(r.cams(1).U, 1);
+    stack.data = nan(NClips, nPix, 1 );
     
     % if betas contains any NaNs, geomeries have to be done again. oldGeoms
     % is put to 0.
@@ -2251,11 +2253,9 @@ function buttonBatch_CallBack(hObject, eventdata)
     
     % Now sample the frames at the pixels indicated by insts, starting with the first. 
     % data is a structure with the data for each pixel instrument.
-    data = sampleDJIFrame(insts, Ig, betas(1,:), meta.globals);
-    % Fill stack structure with the sampled data from first frame
-    for i = 1: length(data)
-        stack(i).data(1,:) = data(i).I';
-    end
+    data = sampleDJIFrame(r, Ig, betas(1,:), meta.globals); % fill first frame
+    stack.data(1,:) = data';
+
     
     % Create images structure which contains Argus image products 
     % (timex, bright, dark)
@@ -2307,11 +2307,14 @@ function buttonBatch_CallBack(hObject, eventdata)
             end
         end
         
-        % Sample insts for the new frameand store in stack.data
-        data = sampleDJIFrame(insts, Ig, betas(clip,:), meta.globals);
-        for j = 1: length(data)
-            stack(j).data(clip,:) = data(j).I';
-        end
+        % must redo r for each new beta
+        [geom, cam, ip] = lcpBeta2GeomCamIp( meta.globals.lcp, betas(clip,:) );
+        r = PIXParameterizeR( r, cam, geom, ip );
+        r = PIXRebuildCollect( r );
+
+        data = sampleDJIFrame(r, Ig, betas(clip,:), meta.globals);
+        stack.data(clip,:) = data';        
+        
         % Create images structure which contains Argus image products
         if inputs.doImageProducts
             images = buildRectProducts(dn(clip), images, double(I), ...
@@ -2370,29 +2373,36 @@ function buttonBatch_CallBack(hObject, eventdata)
     save(fullfile(folderMat, imageFn), 'finalImages')
     
     % Save instrument data (vBar, runup, cBathy grid)
-    foo = stack;
-    for i = 1: length(insts)
+    unames = unique(r.names);
+    
+    for i = 1: length(unames)
+        label_insts = strcmp(r.names,unames{i});
+        
+        % save the stack structure 
+        foo.xyz = r.cams(1).XYZ(label_insts,:);
+        foo.name = unames{i};
+        foo.data = stack.data(:,label_insts);
+        foo.dn = dn;
         
         % save .mat file
-        info.type = insts(i).shortName;
+        info.type = unames{i};
         stackFn = argusFilename(info);
-        stack = foo(i);
-        save(fullfile(folderMat, stackFn), 'stack')
+        save(fullfile(folderMat, stackFn), 'foo')
         
         % save .png file
-        if ~isempty(strfind(insts(i).shortName, 'vBar'))
+        if ~isempty(strfind(unames{i}, 'vBar'))
             
-            figure('Name', stack.inst.shortName, 'Tag', stack.inst.shortName, 'Units', 'normalized')
-            imagesc(stack.xyzAll(:,2), stack.dn, stack.data)
+            figure('Name', unames{i}, 'Tag', unames{i}, 'Units', 'normalized')
+            imagesc(foo.xyz(:,2), foo.dn, foo.data)
             colormap('gray')
             xlabel('y-alongshore [m]')
             ylabel('GMT time of day')
             datetick('y',13,'keepticks')
-            title(stack.inst.shortName)
+            title(unames{i})
             set(gca, 'xdir','reverse')
             
             
-            info.type = insts(i).shortName;
+            info.type = unames{i};
             info.format = 'jpg';
             fn = argusFilename(info);
             
@@ -2401,17 +2411,17 @@ function buttonBatch_CallBack(hObject, eventdata)
             set(gcf, 'Visible', 'off')
             info.format = 'mat';
             
-        elseif ~isempty(strfind(insts(i).shortName, 'runup'))
+        elseif ~isempty(strfind(unames{i}, 'runup'))
             
-            figure('Name', stack.inst.shortName, 'Tag', stack.inst.shortName, 'Units', 'normalized')
-            imagesc(stack.xyzAll(:,1), stack.dn, stack.data)
+            figure('Name', unames{i}, 'Tag', unames{i}, 'Units', 'normalized')
+            imagesc(foo.xyz(:,1), foo.dn, foo.data)
             colormap('gray')
             xlabel('x-crossshore [m]')
             ylabel('GMT time of day')
             datetick('y',13,'keepticks')
-            title(stack.inst.shortName)
+            title(unames{i})
 
-            info.type = insts(i).shortName;
+            info.type = unames{i};
             info.format = 'jpg';
             fn = argusFilename(info);
             
@@ -2659,7 +2669,7 @@ function buttonBatch_CallBack(hObject, eventdata)
     hFig2 = findobj('Tag', 'showfigures2');
     hFig2.Enable = 'on';
     
-    handles.insts = insts;
+    handles.insts = r;
     handles.meta = meta;
     handles.finalImages = finalImages;
     
