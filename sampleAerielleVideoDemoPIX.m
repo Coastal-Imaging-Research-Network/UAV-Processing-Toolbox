@@ -6,9 +6,16 @@
 %       records for each UAV analysis.
 %   - a gcp file from a current survey
 %   - 
+%
+%  also important, you need the PIXel-Toolbox repo from github, which is 
+%  right next to the UAV toolbox you already have. 
+%
 
 clear
 close all
+
+addpath neededCILRoutines
+addpath ../PIXEL-Toolbox
 
 % required USER INPUT material.  Adapt to each collection
 demoInputFile;      % this file contains all of the required inputs.
@@ -43,6 +50,7 @@ I = imread([inputs.pnIn filesep clipFns(1).name filesep fns{1}(1).name]);
 [NV, NU, NC] = size(I);
 Ig = rgb2gray(I);           % for later sampling.
 meta.showFoundRefPoints = inputs.showFoundRefPoints; % easy way to pass.
+meta.showInputImages = inputs.showInputImages;       % ditto
 
 % Because nlinfit requires globals, we set up a variable globals (under 
 % metadata) that contains the lcp as well as the flags and values for
@@ -89,10 +97,10 @@ end
 % set up instruments and stacks - always do this.
 [geom, cam, ip] = lcpBeta2GeomCamIp( meta.globals.lcp, betas(1,:) );
 r = PIXParameterizeR( r, cam, geom, ip );
-
 r = PIXRebuildCollect( r );
 
 showInsts(I, r);
+xlabel('u (pix)'); ylabel('v (pix)'); title('Demo Run Time Exposure')
 
 % if you don't see what you hoped to see, stop and re-create instruments.
 foo = input('Hit Ctrl-C if instruments not proper in Figure 3, otherwise <Enter> ');
@@ -103,8 +111,6 @@ nPix = size(r.cams(1).U, 1);
 stack.data = nan(nt, nPix, 1 );
 
 %%
-
-xlabel('x (m)'); ylabel('y (m)'); title('Demo Run Time Exposure')
 
 % now save metadata if it wasn't already there
 if  oldGeoms==0
@@ -185,6 +191,12 @@ for clip = 1: NClips    % this is only relevant if you have multiple clips
         if isnan(betas(cnt,1))
             break;
         end
+
+        % must redo r for each new beta
+        [geom, cam, ip] = lcpBeta2GeomCamIp( meta.globals.lcp, betas(cnt,:) );
+        r = PIXParameterizeR( r, cam, geom, ip );
+        r = PIXRebuildCollect( r );
+
         data = sampleDJIFrame(r, Ig, betas(cnt,:), meta.globals);
             stack.data(cnt,:) = data';
         if inputs.doImageProducts

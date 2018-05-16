@@ -35,18 +35,22 @@ Vr(i) = mean(V(good));
 % plot option
 if meta.showFoundRefPoints
     figure(1+10);clf; colormap(gray)
-    imagesc(URef,VRef,I2)
+    imagesc(URef,VRef,I2); axis image
     hold on
     plot(Ur(i),Vr(i),'r*')
+    drawnow
 end
 du = round(Ur(i) - uv(1));     % rough corrections to search guesses
 dv = round(Vr(i) - uv(2));
 
 for i = 2: size(xyz,1)
     uv = round(findUVnDOF(beta,xyz(i,:), meta.globals));
-    uv = uv(:) + [du; dv];
-    URef = [uv(1)-dUV(i,1): uv(1)+dUV(i,1)];
-    VRef = [uv(2)-dUV(i,2): uv(2)+dUV(i,2)];
+    uv = uv(:) + [du; dv];    
+    URef = [uv(1)-dUV(i,1): uv(1)+dUV(i,1)];    %This is a problem if the search region heads out of view!!  (Negative indices!)
+    VRef = [uv(2)-dUV(i,2): uv(2)+dUV(i,2)];  
+    % you may not go off the edge! 
+     URef = URef( find(URef>0)); URef = URef( find(URef<size(I,2)+1)); 
+     VRef = VRef( find(VRef>0)); VRef = VRef( find(VRef<size(I,1)+1));
     I2 = I(VRef,URef);
     [U,V] = meshgrid(URef,VRef);
     Ur(i) = mean(U(I2>thresh(i)));
@@ -54,9 +58,10 @@ for i = 2: size(xyz,1)
     % plot option
     if meta.showFoundRefPoints
         figure(i+10);clf; colormap(gray)
-        imagesc(URef,VRef,I2)
+        imagesc(URef,VRef,I2); axis image
         hold on
         plot(Ur(i),Vr(i),'r*')
+        drawnow
     end
 end
 
