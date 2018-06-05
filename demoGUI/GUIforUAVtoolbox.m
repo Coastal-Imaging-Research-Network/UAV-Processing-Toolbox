@@ -2272,7 +2272,7 @@ function buttonBatch_CallBack(hObject, eventdata)
     NClips = length(clipFns);
 
     % Create vector dn which contains the time-stamps in datanum
-    dn = datenum(inputs.dateVect) + ([1:NClips]-1)*0.5;
+    dn = datenum(inputs.dateVect) + ([1:NClips]-1)*0.5./(24*3600);
     % read the first frame
     I = imread(fullfile(inputs.pnIn, clipFns(1).name));
     [NV, NU, NC] = size(I);
