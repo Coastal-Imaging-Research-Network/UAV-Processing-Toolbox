@@ -1,7 +1,7 @@
 % GUIforUAVtoolbox Graphical User Interface for the UAV Processing Toolbox
 % KV WRL 04.2017
 % Matlab version required: R2016b
-
+% Altered by Brittany Bruder: June 5, 2018
 function GUIforUAVtoolbox()
 
 
@@ -283,9 +283,35 @@ hButton8 = uicontrol(...
     'String', '...',...
     'Callback', {@buttonInstsfile_Callback});
 
+
+% 8a--> Time Vector
+
+hHBoxInput8a = uix.HBox(...
+    'Parent', hVBoxInput,...
+    'Padding', 5,...
+    'Spacing', 5);
+hText = uicontrol(...
+    'Parent', hHBoxInput8a,...
+    'Style', 'text',...
+    'String', 'GMT Date Number',...
+    'Fontsize', 8,...
+    'Fontweight', 'bold',...
+    'HorizontalAlignment', 'left');
+hEdit8a = uicontrol(...
+    'Parent', hHBoxInput8a,...
+    'Tag', 'edit8a',...
+    'Style', 'edit',...
+    'String', 'Date Number',...
+    'Fontsize', 7,...
+    'FontAngle', 'italic',...
+    'Callback', {@editDateName_Callback});
+hButton8a = uix.Empty('Parent', hHBoxInput8a);
+
+
+
 % Alignments for Panel Inputs
 % Vertical
-set(hVBoxInput, 'Heights', [30 30 30 30 30 30 30 30])
+set(hVBoxInput, 'Heights', [30 30 30 30 30 30 30 30 30])
 % Horizontal
 set(hHBoxInput1, 'Widths', [100 -1 20])  
 set(hHBoxInput2, 'Widths', [100 -1 20])    
@@ -295,6 +321,7 @@ set(hHBoxInput5, 'Widths', [100 -1 20])
 set(hHBoxInput6, 'Widths', [100 -1 40])
 set(hHBoxInput7, 'Widths', [100 40 -1])
 set(hHBoxInput8, 'Widths', [100 -1 20])
+set(hHBoxInput8a, 'Widths', [100 -1 20])
 
 
 
@@ -1234,6 +1261,17 @@ function buttonInstsfile_Callback(hObject, eventdata)
     guidata(hObject,handles)
 end
 
+function editDateName_Callback(hObject, eventdata)
+    handles = guidata(hObject);
+    
+    htextDateEdit = findobj('tag', 'edit8a');
+    handles.inputs.dateVect = str2num(htextDateEdit.String)
+    handles.inputs.dn0 = str2num(htextDateEdit.String)
+disp('poo')
+    guidata(hObject,handles)
+end
+
+
 % 9. Callback EPSG code
 function editEpsgcode_CallBack(hObject, eventdata)
     handles = guidata(hObject);
@@ -1565,7 +1603,10 @@ function buttonLoad_CallBack(hObject, eventdata)
     [baseFn, folder] = uigetfile('*.mat', 'Load your camera LCP file (.mat)');
     fileName = fullfile(folder,baseFn);
     load(fileName);
-    
+    try 
+    customLCP=lcp;
+    catch
+    end
     % Fill table
     htableCamInt = findobj('tag', 'tableCamInt');
     htableCamInt.Data(:,1) = {sprintf(' %.2f',customLCP.fx) ...
@@ -1581,6 +1622,7 @@ function buttonLoad_CallBack(hObject, eventdata)
     
     hEdit17a = findobj('tag','edit17a');
     hEdit17b = findobj('tag','edit17b');
+    
     hEdit17a.String = num2str(customLCP.NU);
     hEdit17b.String = num2str(customLCP.NV);
     
@@ -1791,6 +1833,9 @@ function buttonFirstframe_CallBack(hObject, eventdata)
     I = imread(fullfile(inputs.pnIn, clipFns(1).name));
     
     % Fill meta structure
+    handles.inputs.doImageProducts = 1;    % usually 1.
+    inputs.showFoundRefPoints = 0; % to display ref points as check
+    
     meta.showFoundRefPoints = inputs.showFoundRefPoints;
     meta.globals.lcp = handles.camInt;
     meta.globals.knownFlags = inputs.knownFlags;
@@ -2227,7 +2272,7 @@ function buttonBatch_CallBack(hObject, eventdata)
     NClips = length(clipFns);
 
     % Create vector dn which contains the time-stamps in datanum
-    dn = datenum(inputs.dateVect) + ([1:NClips]-1)*inputs.dt;
+    dn = datenum(inputs.dateVect) + ([1:NClips]-1)*0.5;
     % read the first frame
     I = imread(fullfile(inputs.pnIn, clipFns(1).name));
     [NV, NU, NC] = size(I);
