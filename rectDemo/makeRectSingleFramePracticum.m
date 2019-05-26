@@ -22,8 +22,8 @@ function frameRect=makeRectSingleFramePracticum(I,xy,z, beta, lcp)
 %% organize indices
 %I = double(I);
 [NV,NU,NC] = size(I);
-Us = [1:NU];
-Vs = [1:NV]';
+UI = [1:NU];
+VI = [1:NV]';
 
 %% define x,y,z grids
 x = [xy(1):xy(2): xy(3)]; y = [xy(4):xy(5): xy(6)];
@@ -53,27 +53,31 @@ P = P/P(3,4);
 %% Now, convert XYZ coordinates to UV coordinates
 %convert xyz locations to uv coordinates
 UV = P*[xyz'; ones(1,size(xyz,1))];
+
 %homogenize UV coordinates (divide by 3 entry)
 UV = UV./repmat(UV(3,:),3,1);
 
 %convert undistorted uv coordinates to distorted coordinates
-[U,V] = distort(UV(1,:),UV(2,:),lcp); 
-UV = round([U; V]);%round to the nearest pixel locations
-UV = reshape(UV,[],2); %reshape the data into something useable
+[Ud,Vd] = distort(UV(1,:),UV(2,:),lcp); 
+UdVd = round([Ud; Vd]);%round to the nearest pixel locations
+UdVd = reshape(UdVd,[],2); %reshape the data into something useable
 
-%find the good pixel coordinates that are actually in the image 
-good = find(onScreen(UV(:,1),UV(:,2),NU,NV));
-%convert to indices
-ind = sub2ind([NV NU],UV(good,2),UV(good,1));
+%find the good pixel coordinates that are actually in the image (your grid
+%might extend outside your image)
+good = find(onScreen(UdVd(:,1),UdVd(:,2),NU,NV));
+
 
 %% Finally, grab the RGB intensities at the indices you need and fill into your XYgrid
 %preallocate final orthophoto
+%preallocate final orthophoto
 Irect = zeros(length(y),length(x),3);
-for i = 1:NC    % cycle through R,G,B intensities
+
+% cycle through R,G,B intensities
+for i = 1:NC    
     singleBandImage = I(:,:,i); %extract the frame
-    rgbIndices = singleBandImage(ind); %extract the data at the pixel locations you need
+    rgbIntensities = interp2(UI, VI, double(singleBandImage),Ud,Vd); %extract the data at the pixel locations you need
     tempImage = Irect(:,:,i); %preallocate the orthophoto size based on your x,y 
-    tempImage(good) = rgbIndices; %fill your extracted pixels into the frame
+    tempImage(good) = rgbIntensities(good); %fill your extracted pixels into the frame
     Irect(:,:,i) = tempImage; %put the frame into the orthophoto
 end
 
@@ -82,6 +86,8 @@ frameRect.y=y;
 frameRect.I=Irect;
 
 %% Plot
-figure;imagesc(frameRect.x,frameRect.y,uint8(frameRect.I));
+imagesc(frameRect.x,frameRect.y,uint8(frameRect.I));
+title('Rectified Image')
+xlabel('X (m)');ylabel('Y (m)')
 axis xy;axis image
 end
