@@ -79,43 +79,6 @@ switch whichStr
         else
             error('No lens calibration yet for this image format')
         end
-    
-    % Add Mavic camera lens calibration parameters
-    case 'Mavic'
-        % data from Caltech calibrations
-        if ((NU == 4000) && (NV == 3000))     % 4 by 3 snap
-            lcp.NU = NU;
-            lcp.NV = NV;
-            lcp.c0U = 2004;
-            lcp.c0V = 1122;
-            lcp.fx = 3008;
-            lcp.fy = 2994;
-            lcp.d1 = 0.00660;  % radial distortion
-            lcp.d2 = -0.09099;
-            lcp.d3 = 0.000;
-            lcp.t1 = 0.000;% tangential terms
-            lcp.t2 = 0.000;
-            lcp = makeRadDist(lcp);
-            lcp = makeTangDist(lcp);    % add tangential dist template
-            
-        elseif ((NU == 3840) && (NV == 2160))     % 4K video
-            lcp.NU = NU;
-            lcp.NV = NV;
-            lcp.c0U = 1758;
-            lcp.c0V = 1090;
-            lcp.fx = 3320;
-            lcp.fy = 3319;
-            lcp.d1 = 0.01638;  % radial distortion coefficients
-            lcp.d2 = 0.02744;
-            lcp.d3 = 0.00105;
-            lcp.t1 = -0.01109;   % tangential distortion coefficients
-            lcp.t2 = 0.000000;
-            lcp = makeRadDist(lcp);
-            lcp = makeTangDist(lcp);    % add tangential dist template
-        else
-            error('No lens calibration yet for this image format')
-        end
-        
     otherwise
         error('Only Aerielle is currently implemented')
 end
