@@ -1,4 +1,4 @@
-function beta6DOF = find6DOFGeom(I, gcp, in, meta)
+function [beta6DOF, UV] = find6DOFGeom(I, gcp, in, meta)
 %   [beta6DOF,refPoints] = find6DOFGeom(I, gcps, input, meta)
 %
 % Initialize a UAV movie analysis using the first (or any) frame.
@@ -22,16 +22,30 @@ xyz = [x' y' z'];
 
 % digitize the gcps and find best fit geometry
 figure(1); clf
-imagesc(I);
+imagesc(I); axis image; 
+drawnow
 disp(['computing geometry using ' num2str(nGcps) ' control points'])
-for i = 1: nGcps
-    disp(['Digitize ' gcp(in.gcpList(i)).name])
+disp('Click anywhere on figure to begin')
+title(['Click anywhere on figure to begin']); 
+junk = ginput(1);     
+
+for i = 1: nGcps    
+    disp(['Zoom in to see ' gcp(in.gcpList(i)).name ' then press Enter'])
+    tit = title(['Zoom in to see ' gcp(in.gcpList(i)).name ' then press Enter']);     
+    zoom on; 
+    pause
+    zoom off; 
+    disp(['Digitize ' gcp(in.gcpList(i)).name])    
+    tit = title(['Now digitize ' gcp(in.gcpList(i)).name ]); 
     UV(i,:) = ginput(1);     
+    delete(tit)
+    zoom out
 end
 beta = nlinfit(xyz,[UV(:,1); UV(:,2)],'findUVnDOF',in.beta0);
 beta6DOF(find(globs.knownFlags)) = globs.knowns;
 beta6DOF(find(~globs.knownFlags)) = beta;
-%
+
+
 %   Copyright (C) 2017  Coastal Imaging Research Network
 %                       and Oregon State University
 
