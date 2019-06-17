@@ -1,0 +1,38 @@
+#!/usr/bin/perl
+
+# resequence: change a group of files with numeric names (00023.png)
+# into a sequence from 1 through n. Mostly to keep caltech camera 
+# calibration toolbox happy. strip off the first file name element
+# (00023) and replace with incrementing count.
+
+@f = sort @ARGV;
+
+&Usage if scalar(@f) == 0;
+
+$count = '000001'; 
+
+while( $file = shift @f ) {
+
+	(undef, @rest) = split( /\./, $file );
+	$new = $count . ".$rest[-1]";
+
+	print "$file -> $new\n";
+	rename $file, $new;
+	$count++;
+
+}
+
+
+
+
+
+
+
+
+
+sub Usage {
+	print "Usage: resequence file1 ...\n";
+	print "   example: resequence *.png\n";
+	exit;
+}
+
