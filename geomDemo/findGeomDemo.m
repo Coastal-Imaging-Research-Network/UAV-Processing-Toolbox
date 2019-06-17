@@ -72,7 +72,7 @@ I = imread(inputs.Ifn);
 meta.globals.lcp = makeLCPP3(inputs.stationStr,NU,NV);
 
 % solve for the geometry, returning all six values in beta
-beta = find6DOFGeom(I, gcp, inputs, meta);
+[beta, UV]= find6DOFGeom(I, gcp, inputs, meta);
 
 % display on image to see quality of fit
 x = [gcp(inputs.gcpList).x];
